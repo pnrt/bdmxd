@@ -11,12 +11,12 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import org.pnrt.model.Client
-import org.pnrt.model.ClientDTO
-import org.pnrt.model.ForAuthentication
-import org.pnrt.model.User
+import org.pnrt.model.Mineral
+import org.pnrt.model.MineralDTO
+import org.pnrt.model.Mines
+import org.pnrt.model.MinesDTO
 
-class ClientApiService {
+class MineralApiService {
     private val client = HttpClient {
         install(ContentNegotiation) {
             json(Json {
@@ -28,14 +28,14 @@ class ClientApiService {
         }
     }
 
-    suspend fun clientList(id: Int): List<Client> {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/client/${id}").body<List<Client>>()
+    suspend fun mineralList(id: Int): List<Mineral> {
+        return client.get("http://localhost:8080/api/${Api.apiKey}/mineral/${id}").body<List<Mineral>>()
     }
 
-suspend fun addClient(clientDTO: ClientDTO): HttpResponse {
-        return client.post("http://localhost:8080/api/${Api.apiKey}/client") {
+    suspend fun addMineral(mineralDTO: MineralDTO): HttpResponse {
+        return client.post("http://localhost:8080/api/${Api.apiKey}/mineral") {
             contentType(ContentType.Application.Json)
-            setBody(clientDTO)
+            setBody(mineralDTO)
         }
     }
 }

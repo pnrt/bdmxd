@@ -3,6 +3,7 @@ package org.pnrt
 import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import org.koin.core.context.startKoin
@@ -26,7 +27,8 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "bdmxd",
-        state = rememberWindowState(width = 1400.dp, height = 900.dp)
+//        state = rememberWindowState(width = 1400.dp, height = 900.dp)
+        state = rememberWindowState(placement = WindowPlacement.Maximized),
     ) {
         MaterialTheme {
             LoginScreen()

@@ -13,3 +13,13 @@ data class Client(
     val email: String,
     val address: String,
 )
+
+@Serializable
+data class ClientDTO(
+    val companyId: Int,
+    val name: String,
+    val contactPerson: String,
+    val phone: String,
+    val email: String,
+    val address: String,
+)
