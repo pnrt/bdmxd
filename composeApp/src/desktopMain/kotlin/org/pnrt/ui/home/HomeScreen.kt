@@ -65,8 +65,8 @@ fun HomeScreen() {
     ) {
         ModernTopPanel(homeViewModel) // ✅ Pass ViewModel to keep state consistent
         when (homeViewModel.selectedOption) {
-            "Trips" -> TripsScreen()
             "Orders" -> OrdersScreen()
+            "Trips" -> TripsScreen()
             "Payments" -> PaymentsScreen()
             "Add" -> AddScreen()
             "Settings" -> SettingsScreen()
@@ -83,13 +83,13 @@ fun TempScreen(homeViewModel: HomeViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Hello!")
+        Text("Error in Software contact developer Pankaj Kumar Rout!")
     }
 }
 
 @Composable
 fun ModernTopPanel(homeViewModel: HomeViewModel) {
-    val options = listOf("Trips", "Orders", "Payments", "Add", "Settings")
+    val options = listOf("Orders", "Trips", "Payments", "Add", "Settings")
     val icons = listOf(
         Icons.Default.Person,
         Icons.Default.ShoppingCart,

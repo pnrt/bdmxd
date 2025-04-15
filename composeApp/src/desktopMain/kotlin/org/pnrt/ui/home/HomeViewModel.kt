@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 
 class HomeViewModel() : ViewModel() {
-    var selectedOption by mutableStateOf("Trips")
+    var selectedOption by mutableStateOf("Orders")
     var dataString by mutableStateOf("")
     var errorMessage by mutableStateOf("")
 
