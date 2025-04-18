@@ -44,7 +44,7 @@ import org.koin.dsl.module
 
 
 @Composable
-fun AddScreen() {
+fun AddScreen(goToOrderScreen: () -> Unit) {
     val addViewModel: AddViewModel = koinInject()
     var selectedOption by remember { mutableStateOf("Clients") }
     val option = listOf("Clients", "Mines", "Destinations", "Minerals")
@@ -95,6 +95,7 @@ fun AddScreen() {
                                     if (addViewModel.clientSelection != null && addViewModel.mineSelection != null && addViewModel.destinationSelection != null && addViewModel.mineralSelection != null) {
                                         Button(onClick = {
                                             addViewModel.onSelectionSet()
+                                            goToOrderScreen()
                                         }) {
                                             Text("Order")
                                         }

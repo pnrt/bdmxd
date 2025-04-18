@@ -12,12 +12,14 @@ import org.pnrt.ui.add.AddViewModel
 import org.pnrt.ui.home.HomeViewModel
 import org.pnrt.ui.login.LoginScreen
 import org.pnrt.ui.login.LoginViewModel
+import org.pnrt.ui.order.OrderViewModel
 
 
 val appModule = module {
     single { HomeViewModel() }
     single { LoginViewModel() }
     single { AddViewModel() }
+    single { OrderViewModel() }
 }
 
 fun main() = application {
