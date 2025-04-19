@@ -19,10 +19,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +43,7 @@ import org.jetbrains.skia.ColorInfo
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import org.pnrt.ui.order.ConfirmationDialog
 
 
 @Composable
@@ -102,6 +105,25 @@ fun AddScreen(goToOrderScreen: () -> Unit) {
                                     }
                                 }
                             }
+                            Column {
+                                Divider()
+                                Card(
+                                    backgroundColor = if (selectedOption == "Owner") Color.LightGray else Color.White,
+                                    elevation = 4.dp,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                        .clickable {
+                                            selectedOption = "Owner"
+                                        }
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(8.dp)
+                                    ) {
+                                        Text("Owner")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -125,6 +147,7 @@ fun AddScreen(goToOrderScreen: () -> Unit) {
                         "Mines" -> AddMinesScreen(addViewModel)
                         "Destinations" -> AddDestinationScreen(addViewModel)
                         "Minerals" -> AddMineralsScreen(addViewModel)
+                        "Owner" -> AddOwnerScreen(addViewModel)
                     }
                 }
             }
@@ -755,6 +778,199 @@ fun AddMineralsScreen(addViewModel: AddViewModel) {
             ) {
                 Column {
                     Text("By default its MT")
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun AddOwnerScreen(addViewModel: AddViewModel) {
+    LaunchedEffect(Unit) {
+        if (addViewModel.ownerDefaultList.isEmpty()) {
+            addViewModel.getOwner()
+        }
+    }
+    Column {
+        Row {
+            Box(
+                modifier = Modifier
+                    .weight(0.3f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp))
+                    .background(Color.White)
+                    .padding(8.dp),
+            ) {
+                if (addViewModel.isLoadingOwner) {
+                    CircularProgressIndicator()
+                } else {
+                    if (addViewModel.ownerDefaultList.isEmpty()) {
+                        Text("No available vehicle owners...!")
+                    }
+                }
+                LazyColumn {
+                    items(addViewModel.ownerDefaultList) { item ->
+                        Card(
+                            backgroundColor = Color.White,
+                            elevation = 4.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                Text("Name: ${item.ownerName}")
+                                Text("Address: ${item.ownerAddress}")
+                                Text("Email: ${item.ownerEmail}")
+                                Text("Phone: ${item.ownerPhone}")
+                                Text("PAN: ${item.ownerPan}")
+                                Text("Type: ${item.ownerType}    Active: ${item.isActive}")
+                            }
+                        }
+                    }
+                }
+            }
+
+            var searchString by remember { mutableStateOf("") }
+            Box(
+                modifier = Modifier
+                    .weight(0.4f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp))
+                    .background(Color.White)
+                    .padding(8.dp),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    OutlinedTextField(
+                        value = searchString,
+                        onValueChange = {searchString = it},
+                        trailingIcon = {
+                            TextButton(onClick = {
+                                addViewModel.getSearchOwner(searchString)
+                            }) {
+                                Text("🔍")
+                            }
+                        },
+                        singleLine = true,
+                        label = { Text("Search...")}
+                    )
+                    if (addViewModel.isLoadingSearchOwner) {
+                        CircularProgressIndicator()
+                    } else {
+                        if (addViewModel.ownerSearchList.isNotEmpty()) {
+                            LazyColumn {
+                                items(addViewModel.ownerSearchList) { item ->
+                                    Card(
+                                        backgroundColor = Color.White,
+                                        elevation = 4.dp,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp),
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp)
+                                        ) {
+                                            Text("Name: ${item.ownerName}")
+                                            Text("Address: ${item.ownerAddress}")
+                                            Text("Email: ${item.ownerEmail}")
+                                            Text("Phone: ${item.ownerPhone}")
+                                            Text("PAN: ${item.ownerPan}")
+                                            Text("Type: ${item.ownerType}    Active: ${item.isActive}")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            var ownerName by remember { mutableStateOf("") }
+            var ownerAddress by remember { mutableStateOf("") }
+            var ownerEmail by remember { mutableStateOf("") }
+            var ownerPhone by remember { mutableStateOf("") }
+            var ownerPan by remember { mutableStateOf("") }
+            var ownerType by remember { mutableStateOf("") }
+
+            Box(
+                modifier = Modifier
+                    .weight(0.3f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp))
+                    .background(Color.White)
+                    .padding(8.dp),
+            ) {
+                if (addViewModel.isLoadingOwner) {
+                    CircularProgressIndicator()
+                } else {
+                    Column {
+                        Text("Add Owners.")
+                        OutlinedTextField(
+                            value = ownerName,
+                            onValueChange = {ownerName = it},
+                            label = { Text("Name")},
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = ownerAddress,
+                            onValueChange = {ownerAddress = it},
+                            label = { Text("Address")},
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = ownerEmail,
+                            onValueChange = {ownerEmail = it},
+                            label = { Text("Email")},
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = ownerPhone,
+                            onValueChange = {ownerPhone = it},
+                            label = { Text("Phone")},
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = ownerPan,
+                            onValueChange = {ownerPan = it.uppercase()},
+                            label = { Text("PAN")},
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = ownerType,
+                            onValueChange = {ownerType = it},
+                            label = { Text("Type")},
+                            singleLine = true
+                        )
+                        var confirmOwnerSave by remember { mutableStateOf(false) }
+                        Button(
+                            onClick = {confirmOwnerSave = true},
+                            enabled = ownerName.isNotEmpty() && ownerAddress.isNotEmpty() && ownerEmail.isNotEmpty() && ownerPhone.isNotEmpty() && ownerPan.isNotEmpty() && ownerType.isNotEmpty()
+                        ) {
+                            Text("Save")
+                        }
+                        if (confirmOwnerSave) {
+                            ConfirmationDialog(
+                                message = "Save Owner",
+                                onConfirm = {
+                                    addViewModel.createOwner(name = ownerName, type = ownerType, phone = ownerPhone, pan = ownerPan, email = ownerEmail, address = ownerAddress)
+                                },
+                                onDismiss = {confirmOwnerSave = false}
+                            )
+                        }
+                        Text(addViewModel.messageOwner)
+                    }
                 }
             }
         }

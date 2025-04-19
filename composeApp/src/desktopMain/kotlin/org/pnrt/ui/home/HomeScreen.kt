@@ -65,7 +65,7 @@ fun HomeScreen() {
     ) {
         ModernTopPanel(homeViewModel) // ✅ Pass ViewModel to keep state consistent
         when (homeViewModel.selectedOption) {
-            "Orders" -> OrdersScreen(goToAddScreen = {homeViewModel.selectedOption = "Add"})
+            "Orders" -> OrdersScreen(goToAddScreen = {homeViewModel.selectedOption = "Add"}, goToTripsScreen = {homeViewModel.selectedOption = "Trips"})
             "Trips" -> TripsScreen()
             "Payments" -> PaymentsScreen()
             "Add" -> AddScreen(goToOrderScreen = {homeViewModel.selectedOption = "Orders"})

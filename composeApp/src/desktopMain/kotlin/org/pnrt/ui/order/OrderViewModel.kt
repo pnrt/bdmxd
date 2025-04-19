@@ -16,6 +16,10 @@ import org.pnrt.model.OrderInfo
 import org.pnrt.service.OrderApiService
 import org.pnrt.ui.login.LogUser
 
+object SelectedOrder {
+    var order: OrderInfo? = null
+}
+
 class OrderViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
     var message by mutableStateOf("")

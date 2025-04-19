@@ -17,11 +17,14 @@ import org.pnrt.model.Mineral
 import org.pnrt.model.MineralDTO
 import org.pnrt.model.Mines
 import org.pnrt.model.MinesDTO
+import org.pnrt.model.Owner
+import org.pnrt.model.OwnerDTO
 import org.pnrt.service.ClientApiService
 import org.pnrt.service.CompanyApiService
 import org.pnrt.service.DestinationApiService
 import org.pnrt.service.MineralApiService
 import org.pnrt.service.MinesApiService
+import org.pnrt.service.OwnerApiService
 import org.pnrt.ui.login.LogUser
 
 
@@ -67,7 +70,7 @@ class AddViewModel: ViewModel() {
     private val companyApiService = CompanyApiService()
     private val minesApiService = MinesApiService()
     private val destinationApiService = DestinationApiService()
-    private val mineralApiService =MineralApiService()
+    private val mineralApiService = MineralApiService()
 
     var clientSelection: Client? by mutableStateOf(null)
     var mineralSelection: Mineral? by mutableStateOf(null)
@@ -235,5 +238,67 @@ fun getMineralList() {
         SelectedPreOrder.mineSelection = mineSelection
         SelectedPreOrder.destinationSelection = destinationSelection
         SelectedPreOrder.mineralSelection = mineralSelection
+    }
+
+
+    var isLoadingOwner by mutableStateOf(false)
+    var messageOwner by mutableStateOf("")
+    var ownerDefaultList by mutableStateOf<List<Owner>>(emptyList())
+
+    private val ownerApiService = OwnerApiService()
+
+    var ownerSearchList by mutableStateOf<List<Owner>>(emptyList())
+    var isLoadingSearchOwner by mutableStateOf(false)
+    var messageSearchOwner by mutableStateOf("")
+
+    fun getOwner() {
+        isLoadingOwner = true
+        messageOwner = ""
+        viewModelScope.launch {
+            try {
+                val response = ownerApiService.getOwnerList()
+                ownerDefaultList = response
+            } catch (e: Exception) {
+                messageOwner = "Error: ${e.message}"
+            } finally {
+                isLoadingOwner = false
+            }
+        }
+    }
+
+    fun getSearchOwner(word: String) {
+        isLoadingSearchOwner = true
+        messageOwner = ""
+        viewModelScope.launch {
+            try {
+                val response = ownerApiService.getSearchOwnerList(word)
+                ownerSearchList = response
+            } catch (e: Exception) {
+                messageSearchOwner = "Error: ${e.message}"
+            } finally {
+                isLoadingSearchOwner = false
+            }
+        }
+    }
+
+    fun createOwner(name: String, type: String, phone: String, pan: String, email: String, address: String) {
+        isLoadingOwner = true
+        messageOwner = ""
+        viewModelScope.launch {
+            try {
+                val ownerEntered = OwnerDTO(ownerName = name, ownerType = type, ownerPhone = phone, ownerPan = pan, ownerEmail = email, ownerAddress = address)
+                val response = ownerApiService.createOwner(ownerEntered)
+                if (response.status.isSuccess()) {
+                    messageOwner = "Successfully created ✅"
+                    getOwner()
+                } else {
+                    messageOwner = "Error While creating owner ❌"
+                }
+            } catch (e: Exception) {
+                messageOwner = "Error: ${e.message}"
+            } finally {
+                isLoadingOwner = false
+            }
+        }
     }
 }

@@ -46,7 +46,7 @@ import org.pnrt.ui.login.LogUser
 
 
 @Composable
-fun OrdersScreen(goToAddScreen: () -> Unit) {
+fun OrdersScreen(goToAddScreen: () -> Unit, goToTripsScreen: () -> Unit) {
     val orderViewModel: OrderViewModel = koinInject()
 
     LaunchedEffect(Unit) {
@@ -95,7 +95,7 @@ fun OrdersScreen(goToAddScreen: () -> Unit) {
                         } else {
                             LazyColumn {
                                 item {
-                                    Text("Active Orders")
+                                    Text("🟢 Active Orders   ${activeList.count()}")
                                 }
                                 items(activeList) { item ->
                                     Card(
@@ -105,7 +105,9 @@ fun OrdersScreen(goToAddScreen: () -> Unit) {
                                             .fillMaxWidth()
                                             .padding(vertical = 8.dp)
                                             .clickable {
+                                                SelectedOrder.order = item
 
+                                                goToTripsScreen()
                                             }
                                     ) {
                                         Row(
@@ -165,7 +167,7 @@ fun OrdersScreen(goToAddScreen: () -> Unit) {
                         } else {
                             LazyColumn {
                                 item {
-                                    Text("Pending Orders")
+                                    Text("🟡 Pending Orders  ${pendingList.count()}")
                                 }
                                 items(pendingList) { item ->
                                     Card(
@@ -245,7 +247,6 @@ fun OrdersScreen(goToAddScreen: () -> Unit) {
         Box(
             modifier = Modifier
                 .weight(0.3f)
-                .padding(8.dp)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
                 .background(Color(0xffFAFAFA ))
@@ -401,10 +402,9 @@ fun ConfirmationDialog(
 @Composable
 fun OrderInfoCard(order: OrderInfo) {
     Column(
-        modifier = Modifier
-            .padding(16.dp),
+        modifier = Modifier.padding(8.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(8.dp)) {
             Text("📦 TP: ${order.tpNumber}   (#${order.orderId})", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
 
