@@ -19,12 +19,15 @@ import org.pnrt.model.Mines
 import org.pnrt.model.MinesDTO
 import org.pnrt.model.Owner
 import org.pnrt.model.OwnerDTO
+import org.pnrt.model.Vehicle
+import org.pnrt.model.VehicleDTO
 import org.pnrt.service.ClientApiService
 import org.pnrt.service.CompanyApiService
 import org.pnrt.service.DestinationApiService
 import org.pnrt.service.MineralApiService
 import org.pnrt.service.MinesApiService
 import org.pnrt.service.OwnerApiService
+import org.pnrt.service.VehicleApiService
 import org.pnrt.ui.login.LogUser
 
 
@@ -35,6 +38,10 @@ object SelectedPreOrder {
     var mineSelection: Mines? = null
     var destinationSelection: Destination? = null
 
+}
+
+object SelectedOwner {
+    var selectedOwner: Owner? = null
 }
 
 
@@ -240,7 +247,7 @@ fun getMineralList() {
         SelectedPreOrder.mineralSelection = mineralSelection
     }
 
-
+//---------------Owner ----------------------
     var isLoadingOwner by mutableStateOf(false)
     var messageOwner by mutableStateOf("")
     var ownerDefaultList by mutableStateOf<List<Owner>>(emptyList())
@@ -298,6 +305,48 @@ fun getMineralList() {
                 messageOwner = "Error: ${e.message}"
             } finally {
                 isLoadingOwner = false
+            }
+        }
+    }
+
+//    -------------Vehicle -----------
+    var isLoadingVehicle by mutableStateOf(false)
+    var messageVehicle by mutableStateOf("")
+
+    var vehicleList: List<Vehicle> by mutableStateOf(emptyList())
+    val vehicleApiService = VehicleApiService()
+
+    fun getVehicle(ownerId: Long) {
+        isLoadingVehicle = true
+        messageVehicle = ""
+        viewModelScope.launch {
+            try {
+                val response = vehicleApiService.getVehicleWithOwnerId(ownerId)
+                vehicleList = response
+            } catch (e: Exception) {
+                messageVehicle = "Error: ${e.message}"
+            } finally {
+                isLoadingVehicle = false
+            }
+        }
+    }
+    fun createVehicle(ownerId: Long, vehicleNo: String, model: String, capacity: Double, insurance: String, fitness: String) {
+        isLoadingVehicle = true
+        messageVehicle = ""
+        viewModelScope.launch {
+            try {
+                val vehicleEntered = VehicleDTO(ownerDetails = ownerId, plateNumber = vehicleNo, model = model, capacity = capacity, insuranceValidTill = insurance, fitnessValidTill = fitness, status = "active")
+                val response = vehicleApiService.createVehicle(vehicleEntered)
+                if (response.status.isSuccess()) {
+                    messageVehicle = "Successfully created ✅"
+                    getVehicle(ownerId)
+                } else {
+                    messageVehicle = "Error While creating owner ❌"
+                }
+            } catch (e: Exception) {
+                messageVehicle = "Error: ${e.message}"
+            } finally {
+                isLoadingVehicle = false
             }
         }
     }

@@ -123,6 +123,22 @@ fun AddScreen(goToOrderScreen: () -> Unit) {
                                         Text("Owner")
                                     }
                                 }
+                                Card(
+                                    backgroundColor = if (selectedOption == "Vehicle") Color.LightGray else Color.White,
+                                    elevation = 4.dp,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                        .clickable {
+                                            selectedOption = "Vehicle"
+                                        }
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(8.dp)
+                                    ) {
+                                        Text("Vehicle")
+                                    }
+                                }
                             }
                         }
                     }
@@ -147,7 +163,8 @@ fun AddScreen(goToOrderScreen: () -> Unit) {
                         "Mines" -> AddMinesScreen(addViewModel)
                         "Destinations" -> AddDestinationScreen(addViewModel)
                         "Minerals" -> AddMineralsScreen(addViewModel)
-                        "Owner" -> AddOwnerScreen(addViewModel)
+                        "Owner" -> AddOwnerScreen(addViewModel, goToVehicle = {selectedOption = "Vehicle"})
+                        "Vehicle" -> AddVehicleScreen(addViewModel)
                     }
                 }
             }
@@ -784,9 +801,9 @@ fun AddMineralsScreen(addViewModel: AddViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+
 @Composable
-fun AddOwnerScreen(addViewModel: AddViewModel) {
+fun AddOwnerScreen(addViewModel: AddViewModel, goToVehicle: () -> Unit) {
     LaunchedEffect(Unit) {
         if (addViewModel.ownerDefaultList.isEmpty()) {
             addViewModel.getOwner()
@@ -816,7 +833,12 @@ fun AddOwnerScreen(addViewModel: AddViewModel) {
                             elevation = 4.dp,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = 8.dp)
+                                .clickable {
+                                    SelectedOwner.selectedOwner = item
+                                    addViewModel.getVehicle(item.id)
+                                    goToVehicle()
+                                },
                         ) {
                             Column(
                                 modifier = Modifier
@@ -875,12 +897,18 @@ fun AddOwnerScreen(addViewModel: AddViewModel) {
                                         elevation = 4.dp,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(vertical = 8.dp),
+                                            .padding(vertical = 8.dp)
+                                            .clickable {
+                                                SelectedOwner.selectedOwner = item
+                                                addViewModel.getVehicle(item.id)
+                                                goToVehicle()
+                                            },
                                     ) {
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(16.dp)
+
                                         ) {
                                             Text("Name: ${item.ownerName}")
                                             Text("Address: ${item.ownerAddress}")
@@ -970,6 +998,137 @@ fun AddOwnerScreen(addViewModel: AddViewModel) {
                             )
                         }
                         Text(addViewModel.messageOwner)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AddVehicleScreen(addViewModel: AddViewModel) {
+    Column {
+        Row {
+            Box(
+                modifier = Modifier
+                    .weight(0.4f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp))
+                    .background(Color.White)
+                    .padding(8.dp),
+            ) {
+                Column {
+                    if (addViewModel.isLoadingVehicle) {
+                        CircularProgressIndicator()
+                    } else {
+                        if (addViewModel.vehicleList.isEmpty()) {
+                            Text("No vehicle for the owner")
+                        } else {
+                            LazyColumn {
+                                item {
+                                    Text("🚚 Vehicle Details")
+                                }
+                                items(addViewModel.vehicleList) { item ->
+                                    Card(
+                                        backgroundColor = Color.White,
+                                        elevation = 4.dp,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp),
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp)
+                                        ) {
+                                            Text("Number: ${item.plateNumber}")
+                                            Text("Capacity: ${item.capacity}")
+                                            Text("Model: ${item.model}")
+                                            Text("Insurance: ${item.insuranceValidTill}")
+                                            Text("Fitness: ${item.fitnessValidTill}")
+                                            Text("Status: ${item.status}")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(0.3f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp))
+                    .background(Color.White)
+                    .padding(8.dp),
+            ) {
+                Column {
+
+                }
+            }
+            var vehicleNumber by remember { mutableStateOf("") }
+            var vehicleModel by remember { mutableStateOf("") }
+            var capacity by remember { mutableStateOf("") }
+            var insurance by remember { mutableStateOf("") }
+            var fitness by remember { mutableStateOf("") }
+            Box(
+                modifier = Modifier
+                    .weight(0.3f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp))
+                    .background(Color.White)
+                    .padding(8.dp),
+            ) {
+                Column {
+                    Text("Enter Vehicle Details:")
+                    OutlinedTextField(
+                        value = vehicleNumber,
+                        onValueChange = {vehicleNumber = it.uppercase()},
+                        label = { Text("Vehicle Number")},
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = vehicleModel,
+                        onValueChange = {vehicleModel = it.uppercase()},
+                        label = { Text("Model")},
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = capacity,
+                        onValueChange = {capacity = it},
+                        label = { Text("Capacity")},
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = insurance,
+                        onValueChange = {insurance = it},
+                        label = { Text("Insurance")},
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = fitness,
+                        onValueChange = {fitness = it},
+                        label = { Text("Fitness")},
+                        singleLine = true
+                    )
+                    var vehicleSaveConfirmation by remember { mutableStateOf(false) }
+                    Button(
+                        onClick = {vehicleSaveConfirmation = true},
+                        enabled = SelectedOwner.selectedOwner != null && vehicleNumber.isNotEmpty() && vehicleModel.isNotEmpty() && capacity.isNotEmpty() && insurance.isNotEmpty() && fitness.isNotEmpty()
+                    ) {
+                        Text("Save")
+                    }
+                    Text(addViewModel.messageVehicle)
+                    if (vehicleSaveConfirmation) {
+                        ConfirmationDialog(
+                            message = "Save vehicle for ${SelectedOwner.selectedOwner?.ownerName}",
+                            onConfirm = {
+                                addViewModel.createVehicle(ownerId = SelectedOwner.selectedOwner?.id ?: 0, vehicleNo = vehicleNumber, model = vehicleModel, capacity = capacity.toDoubleOrNull() ?: 0.0, insurance = insurance, fitness = fitness)
+                                vehicleSaveConfirmation = false
+                            },
+                            onDismiss = {vehicleSaveConfirmation = false}
+                        )
                     }
                 }
             }
