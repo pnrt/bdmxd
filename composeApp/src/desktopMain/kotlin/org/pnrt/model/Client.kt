@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 @Serializable
 data class Client(
     val id: Long,
-    val companyId: Int,
+    val companyId: Long,
     val name: String,
     val contactPerson: String,
     val phone: String,
@@ -16,7 +16,7 @@ data class Client(
 
 @Serializable
 data class ClientDTO(
-    val companyId: Int,
+    val companyId: Long,
     val name: String,
     val contactPerson: String,
     val phone: String,

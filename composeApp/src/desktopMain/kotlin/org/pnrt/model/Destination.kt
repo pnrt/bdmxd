@@ -13,7 +13,7 @@ data class Destination(
 
 @Serializable
 data class  DestinationDTO(
-    val companyId: Int,
+    val companyId: Long,
     val name: String,
     val location: String,
 )

@@ -14,7 +14,7 @@ data class Mines (
 
 @Serializable
 data class MinesDTO (
-    val companyId: Int,
+    val companyId: Long,
     val name: String,
     val location: String,
 )

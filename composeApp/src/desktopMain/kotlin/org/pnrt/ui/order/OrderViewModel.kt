@@ -61,12 +61,12 @@ class OrderViewModel : ViewModel() {
     }
 
     fun postOrder(
-        companyId: Int,
+        companyId: Long,
         tpNumber: String,
-        clientId: Int,
-        mineId: Int,
-        destinationId: Int,
-        mineralId: Int,
+        clientId: Long,
+        mineId: Long,
+        destinationId: Long,
+        mineralId: Long,
         quantity: Double,
         ratePerTon: Double,
     ) {
@@ -90,7 +90,7 @@ class OrderViewModel : ViewModel() {
         }
     }
 
-    fun changeOrderStatus(id: Int, status: String) {
+    fun changeOrderStatus(id: Long, status: String) {
         isLoading = true
         message = ""
         viewModelScope.launch {

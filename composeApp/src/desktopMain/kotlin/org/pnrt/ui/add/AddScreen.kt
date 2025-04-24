@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.unpackInt1
 import org.jetbrains.skia.ColorInfo
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
@@ -824,33 +826,35 @@ fun AddOwnerScreen(addViewModel: AddViewModel, goToVehicle: () -> Unit) {
                 } else {
                     if (addViewModel.ownerDefaultList.isEmpty()) {
                         Text("No available vehicle owners...!")
-                    }
-                }
-                LazyColumn {
-                    items(addViewModel.ownerDefaultList) { item ->
-                        Card(
-                            backgroundColor = Color.White,
-                            elevation = 4.dp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .clickable {
-                                    SelectedOwner.selectedOwner = item
-                                    addViewModel.getVehicle(item.id)
-                                    goToVehicle()
-                                },
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                Text("Name: ${item.ownerName}")
-                                Text("Address: ${item.ownerAddress}")
-                                Text("Email: ${item.ownerEmail}")
-                                Text("Phone: ${item.ownerPhone}")
-                                Text("PAN: ${item.ownerPan}")
-                                Text("Type: ${item.ownerType}    Active: ${item.isActive}")
+                    } else {
+                        LazyColumn {
+                            item { Text("Vehicle Owners list: ") }
+                            items(addViewModel.ownerDefaultList) { item ->
+                                Card(
+                                    backgroundColor = Color.White,
+                                    elevation = 4.dp,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                        .clickable {
+                                            SelectedOwner.selectedOwner = item
+                                            addViewModel.getVehicle(item.id)
+                                            goToVehicle()
+                                        },
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp)
+                                    ) {
+                                        Text("Name: ${item.ownerName}")
+                                        Text("Address: ${item.ownerAddress}")
+                                        Text("Email: ${item.ownerEmail}")
+                                        Text("Phone: ${item.ownerPhone}")
+                                        Text("PAN: ${item.ownerPan}")
+                                        Text("Type: ${item.ownerType}    Active: ${item.isActive}")
+                                    }
+                                }
                             }
                         }
                     }
@@ -1024,17 +1028,24 @@ fun AddVehicleScreen(addViewModel: AddViewModel) {
                         if (addViewModel.vehicleList.isEmpty()) {
                             Text("No vehicle for the owner")
                         } else {
+                            var selectedVehicleId by rememberSaveable { mutableStateOf(0L) }
                             LazyColumn {
                                 item {
                                     Text("🚚 Vehicle Details")
                                 }
                                 items(addViewModel.vehicleList) { item ->
+                                    val isSelected = selectedVehicleId == item.id
                                     Card(
-                                        backgroundColor = Color.White,
+                                        backgroundColor = if (isSelected) Color.LightGray else Color.White,
                                         elevation = 4.dp,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(vertical = 8.dp),
+                                            .padding(vertical = 8.dp)
+                                            .clickable {
+                                                selectedVehicleId = item.id
+                                                SelectedVehicle.selectedVehicle = item
+                                                addViewModel.getDriver(item.id)
+                                           },
                                     ) {
                                         Column(
                                             modifier = Modifier
@@ -1064,7 +1075,100 @@ fun AddVehicleScreen(addViewModel: AddViewModel) {
                     .padding(8.dp),
             ) {
                 Column {
+                    var name by remember { mutableStateOf("") }
+                    var phone by remember { mutableStateOf("") }
+                    var licenseNumber by remember { mutableStateOf("") }
+                    var validDate by remember { mutableStateOf("") }
+                    var address by remember { mutableStateOf("") }
+                    var confirmDriver by remember { mutableStateOf(false) }
+                    if (addViewModel.isLoadingDriver) {
+                        CircularProgressIndicator()
+                    } else {
 
+                        if (addViewModel.driverList.isEmpty()) {
+                            if (SelectedVehicle.selectedVehicle == null) {
+                                Text("Kindly select a vehicle !")
+                            } else {
+                                Column {
+                                    Text("Enter Driver Details(*No driver exists):")
+                                    OutlinedTextField(
+                                        value = name,
+                                        onValueChange = {name = it},
+                                        label = { Text("Name")},
+                                        singleLine = true
+                                    )
+                                    OutlinedTextField(
+                                        value = phone,
+                                        onValueChange = {phone = it},
+                                        label = { Text("Phone")},
+                                        singleLine = true
+                                    )
+                                    OutlinedTextField(
+                                        value = licenseNumber,
+                                        onValueChange = {licenseNumber = it},
+                                        label = { Text("Driving License")},
+                                        singleLine = true
+                                    )
+                                    OutlinedTextField(
+                                        value = validDate,
+                                        onValueChange = {validDate= it},
+                                        label = { Text("Valid till")},
+                                        singleLine = true
+                                    )
+                                    OutlinedTextField(
+                                        value = address,
+                                        onValueChange = {address = it},
+                                        label = { Text("Address")},
+                                        singleLine = true
+                                    )
+                                    Button(
+                                        onClick = {confirmDriver = true},
+                                        enabled = SelectedVehicle.selectedVehicle != null && name.isNotEmpty() && phone.isNotEmpty() && licenseNumber.isNotEmpty() && validDate.isNotEmpty() && address.isNotEmpty()
+                                    ) {
+                                        Text("Save")
+                                    }
+                                    if (confirmDriver) {
+                                        ConfirmationDialog(
+                                            message = "Save driver",
+                                            onDismiss = {confirmDriver = false},
+                                            onConfirm = {
+                                                addViewModel.createDriver(SelectedVehicle.selectedVehicle?.id ?: 0, name = name, phone = phone, drivingLicense = licenseNumber, validity = validDate, address = address)
+                                                confirmDriver = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                        } else {
+                            LazyColumn {
+                                item {
+                                    Text("👷 Driver Details for Vehicle ${SelectedVehicle.selectedVehicle?.plateNumber}")
+                                }
+                                items(addViewModel.driverList) { item ->
+                                    Card(
+                                        backgroundColor = Color.White,
+                                        elevation = 4.dp,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp),
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(8.dp)
+                                        ) {
+                                            Text("Name: ${item.name}")
+                                            Text("Phone: ${item.phone}")
+                                            Text("DL: ${item.licenseNumber}")
+                                            Text("Valid Date: ${item.licenseValidTill}")
+                                            Text("Address: ${item.address}")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
             var vehicleNumber by remember { mutableStateOf("") }

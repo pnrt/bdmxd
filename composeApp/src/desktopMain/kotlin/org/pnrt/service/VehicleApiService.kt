@@ -14,6 +14,7 @@ import kotlinx.serialization.json.Json
 import org.pnrt.model.OwnerDTO
 import org.pnrt.model.Vehicle
 import org.pnrt.model.VehicleDTO
+import org.pnrt.model.VehicleDetails
 
 class VehicleApiService {
     private val client = HttpClient {
@@ -36,5 +37,9 @@ class VehicleApiService {
             contentType(ContentType.Application.Json)
             setBody(vehicleDTO)
         }
+    }
+
+    suspend fun getVehicleDetails(vehicleNumber: String): VehicleDetails {
+        return client.get("http://localhost:8080/api/${Api.apiKey}/vehicle/details/${vehicleNumber}").body<VehicleDetails>()
     }
 }

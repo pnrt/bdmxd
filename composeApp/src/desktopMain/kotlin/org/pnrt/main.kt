@@ -13,6 +13,7 @@ import org.pnrt.ui.home.HomeViewModel
 import org.pnrt.ui.login.LoginScreen
 import org.pnrt.ui.login.LoginViewModel
 import org.pnrt.ui.order.OrderViewModel
+import org.pnrt.ui.trips.TripsViewModel
 
 
 val appModule = module {
@@ -20,6 +21,7 @@ val appModule = module {
     single { LoginViewModel() }
     single { AddViewModel() }
     single { OrderViewModel() }
+    single { TripsViewModel() }
 }
 
 fun main() = application {

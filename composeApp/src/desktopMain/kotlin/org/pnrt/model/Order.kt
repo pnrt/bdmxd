@@ -7,12 +7,12 @@ import java.time.LocalDate
 @Serializable
 data class Order(
     val id: Long,
-    val companyId: Int,
+    val companyId: Long,
     val tpNumber: String,
-    val clientId: Int,
-    val mineralId: Int,
-    val mineId: Int,
-    val destinationId: Int,
+    val clientId: Long,
+    val mineralId: Long,
+    val mineId: Long,
+    val destinationId: Long,
     val quantity: Double,
     val ratePerTon: Double,
     val orderDate:String,
@@ -21,12 +21,12 @@ data class Order(
 
 @Serializable
 data class OrderDTO(
-    val companyId: Int,
+    val companyId: Long,
     val tpNumber: String,
-    val clientId: Int,
-    val mineralId: Int,
-    val mineId: Int,
-    val destinationId: Int,
+    val clientId: Long,
+    val mineralId: Long,
+    val mineId: Long,
+    val destinationId: Long,
     val quantity: Double,
     val ratePerTon: Double,
 )
@@ -34,16 +34,16 @@ data class OrderDTO(
 @Serializable
 data class OrderInfo(
     val status: String,
-    val companyId: Int,
+    val companyId: Long,
     val tpNumber: String,
-    val clientId: Int,
+    val clientId: Long,
     val quantity: Double,
     val orderDate: String,
-    val mineralId: Int,
+    val mineralId: Long,
     val ratePerTon: Double,
     val destinationId: Int,
     val minesName: String,
-    val orderId: Int,
+    val orderId: Long,
     val destinationName: String,
     val mineralName: String,
     val mineralUnit: String,

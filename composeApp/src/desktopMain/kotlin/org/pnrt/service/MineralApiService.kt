@@ -28,7 +28,7 @@ class MineralApiService {
         }
     }
 
-    suspend fun mineralList(id: Int): List<Mineral> {
+    suspend fun mineralList(id: Long): List<Mineral> {
         return client.get("http://localhost:8080/api/${Api.apiKey}/mineral/${id}").body<List<Mineral>>()
     }
 

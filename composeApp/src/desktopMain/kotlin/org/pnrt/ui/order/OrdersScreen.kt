@@ -132,14 +132,14 @@ fun OrdersScreen(goToAddScreen: () -> Unit, goToTripsScreen: () -> Unit) {
                                             if (completedOrder) {
                                                 ConfirmationDialog(
                                                     message = "Complete Order ✅",
-                                                    onConfirm = {orderViewModel.changeOrderStatus(item.orderId.toInt(), status = "completed")},
+                                                    onConfirm = {orderViewModel.changeOrderStatus(item.orderId, status = "completed")},
                                                     onDismiss = {completedOrder = false}
                                                 )
                                             }
                                             if (cancelOrder) {
                                                 ConfirmationDialog(
                                                     message = "Cancel Order ❌",
-                                                    onConfirm = {orderViewModel.changeOrderStatus(item.orderId.toInt(), status = "cancelled")},
+                                                    onConfirm = {orderViewModel.changeOrderStatus(item.orderId, status = "cancelled")},
                                                     onDismiss = {cancelOrder = false}
                                                 )
                                             }
@@ -216,7 +216,7 @@ fun OrdersScreen(goToAddScreen: () -> Unit, goToTripsScreen: () -> Unit) {
                                                     message = "Accept order",
                                                     onConfirm = {
                                                         orderViewModel.changeOrderStatus(
-                                                            item.orderId.toInt(),
+                                                            item.orderId,
                                                             status = "active"
                                                         )
                                                     },
@@ -228,7 +228,7 @@ fun OrdersScreen(goToAddScreen: () -> Unit, goToTripsScreen: () -> Unit) {
                                                     message = "Reject order",
                                                     onConfirm = {
                                                         orderViewModel.changeOrderStatus(
-                                                            item.orderId.toInt(),
+                                                            item.orderId,
                                                             status = "cancelled"
                                                         )
                                                     },
@@ -346,12 +346,12 @@ fun OrdersScreen(goToAddScreen: () -> Unit, goToTripsScreen: () -> Unit) {
                                             message = "Do you want to proceed with this order quantity: $quantity",
                                             onConfirm = {
                                                 orderViewModel.postOrder(
-                                                    companyId = companyId.toInt(),
+                                                    companyId = LogUser.presentUser?.companyId ?: 0,
                                                     tpNumber = tpNumber,
-                                                    clientId = (SelectedPreOrder.clientSelection?.id ?: 0).toInt(),
-                                                    mineId = (SelectedPreOrder.mineSelection?.id ?: 0).toInt(),
-                                                    destinationId = (SelectedPreOrder.destinationSelection?.id ?: 0).toInt(),
-                                                    mineralId = (SelectedPreOrder.mineralSelection?.id ?: 0).toInt(),
+                                                    clientId = (SelectedPreOrder.clientSelection?.id ?: 0),
+                                                    mineId = (SelectedPreOrder.mineSelection?.id ?: 0),
+                                                    destinationId = (SelectedPreOrder.destinationSelection?.id ?: 0),
+                                                    mineralId = (SelectedPreOrder.mineralSelection?.id ?: 0),
                                                     quantity = quantity.toDouble(),
                                                     ratePerTon = ratePer.toDouble()
                                                 )

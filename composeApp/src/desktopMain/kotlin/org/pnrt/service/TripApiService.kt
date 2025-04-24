@@ -11,12 +11,12 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import org.pnrt.model.Client
-import org.pnrt.model.ClientDTO
-import org.pnrt.model.Mines
-import org.pnrt.model.MinesDTO
+import org.pnrt.model.Driver
+import org.pnrt.model.DriverDTO
+import org.pnrt.model.Trip
+import org.pnrt.model.TripDTO
 
-class MinesApiService {
+class TripApiService {
     private val client = HttpClient {
         install(ContentNegotiation) {
             json(Json {
@@ -28,14 +28,14 @@ class MinesApiService {
         }
     }
 
-    suspend fun minesList(id: Long): List<Mines> {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/mines/${id}").body<List<Mines>>()
+    suspend fun getTripsWithOrderId(orderId: Long): List<Trip> {
+        return client.get("http://localhost:8080/api/${Api.apiKey}/trip/order/${orderId}").body<List<Trip>>()
     }
 
-    suspend fun addMines(minesDTO: MinesDTO): HttpResponse {
-        return client.post("http://localhost:8080/api/${Api.apiKey}/mines") {
+    suspend fun createTrip(tripDTO: TripDTO): HttpResponse {
+        return client.post("http://localhost:8080/api/${Api.apiKey}/trip") {
             contentType(ContentType.Application.Json)
-            setBody(minesDTO)
+            setBody(tripDTO)
         }
     }
 }

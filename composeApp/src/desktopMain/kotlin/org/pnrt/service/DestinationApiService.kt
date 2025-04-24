@@ -28,7 +28,7 @@ class DestinationApiService {
         }
     }
 
-    suspend fun destinationList(id: Int): List<Destination> {
+    suspend fun destinationList(id: Long): List<Destination> {
         return client.get("http://localhost:8080/api/${Api.apiKey}/destination/${id}").body<List<Destination>>()
     }
 

@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 @Serializable
 data class User(
     val isAuthorized: Boolean,
-    val companyId: Int?,
+    val companyId: Long?,
     val role: String?,
 )
 

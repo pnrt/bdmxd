@@ -30,11 +30,11 @@ class OrderApiService {
         }
     }
 
-    suspend fun orderList(id: Int): List<Order> {
+    suspend fun orderList(id: Long): List<Order> {
         return client.get("http://localhost:8080/api/${Api.apiKey}/order/${id}").body<List<Order>>()
     }
 
-    suspend fun orderInfoList(id: Int): List<OrderInfo> {
+    suspend fun orderInfoList(id: Long): List<OrderInfo> {
         return client.get("http://localhost:8080/api/${Api.apiKey}/order/list/${id}").body<List<OrderInfo>>()
     }
 
@@ -45,7 +45,7 @@ class OrderApiService {
         }
     }
 
-    suspend fun changeStatus(id: Int, status: String): HttpResponse {
+    suspend fun changeStatus(id: Long, status: String): HttpResponse {
         return client.put("http://localhost:8080/api/${Api.apiKey}/order/s/${id}/status?status=${status}")
     }
 }

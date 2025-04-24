@@ -13,6 +13,8 @@ import org.pnrt.model.ClientDTO
 import org.pnrt.model.Company
 import org.pnrt.model.Destination
 import org.pnrt.model.DestinationDTO
+import org.pnrt.model.Driver
+import org.pnrt.model.DriverDTO
 import org.pnrt.model.Mineral
 import org.pnrt.model.MineralDTO
 import org.pnrt.model.Mines
@@ -24,6 +26,7 @@ import org.pnrt.model.VehicleDTO
 import org.pnrt.service.ClientApiService
 import org.pnrt.service.CompanyApiService
 import org.pnrt.service.DestinationApiService
+import org.pnrt.service.DriverApiService
 import org.pnrt.service.MineralApiService
 import org.pnrt.service.MinesApiService
 import org.pnrt.service.OwnerApiService
@@ -44,6 +47,9 @@ object SelectedOwner {
     var selectedOwner: Owner? = null
 }
 
+object SelectedVehicle {
+    var selectedVehicle: Vehicle? = null
+}
 
 class AddViewModel: ViewModel() {
     var isLoading by mutableStateOf(false)
@@ -84,7 +90,7 @@ class AddViewModel: ViewModel() {
     var mineSelection: Mines? by mutableStateOf(null)
     var destinationSelection: Destination? by mutableStateOf(null)
 
-    fun getClientsList(id: Int = LogUser.presentUser?.companyId ?: 0) {
+    fun getClientsList(id: Long = LogUser.presentUser?.companyId ?: 0) {
         isLoading = true
         message = ""
         viewModelScope.launch {
@@ -113,7 +119,7 @@ class AddViewModel: ViewModel() {
         }
     }
 
-    fun postClient( companyId: Int = LogUser.presentUser?.companyId ?: 0, name: String, contactPerson: String, phone: String, email: String, address: String){
+    fun postClient( companyId: Long = LogUser.presentUser?.companyId ?: 0, name: String, contactPerson: String, phone: String, email: String, address: String){
         isLoadingPostClient = true
         messageClientPost = ""
         viewModelScope.launch {
@@ -148,7 +154,7 @@ class AddViewModel: ViewModel() {
             }
         }
     }
-    fun postMines( companyId: Int = LogUser.presentUser?.companyId ?: 0, name: String, address: String){
+    fun postMines( companyId: Long = LogUser.presentUser?.companyId ?: 0, name: String, address: String){
         isLoadingMinesPost = true
         messageMinesPost = ""
         viewModelScope.launch {
@@ -183,7 +189,7 @@ class AddViewModel: ViewModel() {
             }
         }
     }
-    fun postDestination( companyId: Int = LogUser.presentUser?.companyId ?: 0, name: String, address: String){
+    fun postDestination( companyId: Long = LogUser.presentUser?.companyId ?: 0, name: String, address: String){
         isLoadingDestinationPost = true
         messageDestinationPost = ""
         viewModelScope.launch {
@@ -219,7 +225,7 @@ fun getMineralList() {
         }
     }
 }
-    fun postMineral( companyId: Int = LogUser.presentUser?.companyId ?: 0, name: String, unit: String){
+    fun postMineral( companyId: Long = LogUser.presentUser?.companyId ?: 0, name: String, unit: String){
         isLoadingMineralPost = true
         messageMineralPost = ""
         viewModelScope.launch {
@@ -347,6 +353,47 @@ fun getMineralList() {
                 messageVehicle = "Error: ${e.message}"
             } finally {
                 isLoadingVehicle = false
+            }
+        }
+    }
+//    ------- Driver -------------
+    var isLoadingDriver by mutableStateOf(false)
+    var messageDriver by mutableStateOf("")
+
+    var driverList by mutableStateOf<List<Driver>>(emptyList())
+    var driverApiService = DriverApiService()
+
+    fun getDriver(vehicleId: Long) {
+        isLoadingDriver = true
+        messageDriver = ""
+        viewModelScope.launch {
+            try {
+                val response = driverApiService.getDriverWithVehicleId(vehicleId)
+                driverList = response
+            } catch (e: Exception) {
+                messageDriver = "Error: ${e.message}"
+            } finally {
+                isLoadingDriver = false
+            }
+        }
+    }
+    fun createDriver(vehicleId: Long, name: String, phone: String, drivingLicense: String, validity: String, address: String) {
+        isLoadingDriver = true
+        messageDriver = ""
+        viewModelScope.launch {
+            try {
+                val driverEntered = DriverDTO(vehicleId = vehicleId, name = name, phone = phone, licenseNumber = drivingLicense, licenseValidTill = validity, address = address)
+                val response = driverApiService.createDriver(driverEntered)
+                if (response.status.isSuccess()) {
+                    messageDriver = "Successfully created ✅"
+                    getDriver(vehicleId)
+                } else {
+                    messageDriver = "Error While creating driver ❌"
+                }
+            } catch (e: Exception) {
+                messageDriver = "Error: ${e.message}"
+            } finally {
+                isLoadingDriver = false
             }
         }
     }

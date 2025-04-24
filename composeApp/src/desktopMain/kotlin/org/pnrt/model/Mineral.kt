@@ -13,7 +13,7 @@ data class Mineral(
 
 @Serializable
 data class MineralDTO(
-    val companyId: Int,
+    val companyId: Long,
     val name: String,
     val unit: String,
 )
