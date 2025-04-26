@@ -15,6 +15,7 @@ import org.pnrt.model.Mineral
 import org.pnrt.model.MineralDTO
 import org.pnrt.model.Mines
 import org.pnrt.model.MinesDTO
+import org.pnrt.security.Api
 
 class MineralApiService {
     private val client = HttpClient {
@@ -29,11 +30,11 @@ class MineralApiService {
     }
 
     suspend fun mineralList(id: Long): List<Mineral> {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/mineral/${id}").body<List<Mineral>>()
+        return client.get("${Api.url}${Api.apiKey}/mineral/${id}").body<List<Mineral>>()
     }
 
     suspend fun addMineral(mineralDTO: MineralDTO): HttpResponse {
-        return client.post("http://localhost:8080/api/${Api.apiKey}/mineral") {
+        return client.post("${Api.url}${Api.apiKey}/mineral") {
             contentType(ContentType.Application.Json)
             setBody(mineralDTO)
         }

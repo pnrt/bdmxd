@@ -15,6 +15,7 @@ import org.pnrt.model.Client
 import org.pnrt.model.ClientDTO
 import org.pnrt.model.ForAuthentication
 import org.pnrt.model.User
+import org.pnrt.security.Api
 
 class ClientApiService {
     private val client = HttpClient {
@@ -29,11 +30,11 @@ class ClientApiService {
     }
 
     suspend fun clientList(id: Long): List<Client> {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/client/${id}").body<List<Client>>()
+        return client.get("${Api.url}${Api.apiKey}/client/${id}").body<List<Client>>()
     }
 
 suspend fun addClient(clientDTO: ClientDTO): HttpResponse {
-        return client.post("http://localhost:8080/api/${Api.apiKey}/client") {
+        return client.post("${Api.url}${Api.apiKey}/client") {
             contentType(ContentType.Application.Json)
             setBody(clientDTO)
         }

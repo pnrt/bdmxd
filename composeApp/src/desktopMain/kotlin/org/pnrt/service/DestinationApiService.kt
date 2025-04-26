@@ -15,6 +15,7 @@ import org.pnrt.model.Destination
 import org.pnrt.model.DestinationDTO
 import org.pnrt.model.Mines
 import org.pnrt.model.MinesDTO
+import org.pnrt.security.Api
 
 class DestinationApiService {
     private val client = HttpClient {
@@ -29,11 +30,11 @@ class DestinationApiService {
     }
 
     suspend fun destinationList(id: Long): List<Destination> {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/destination/${id}").body<List<Destination>>()
+        return client.get("${Api.url}${Api.apiKey}/destination/${id}").body<List<Destination>>()
     }
 
     suspend fun addDestination(destinationDTO: DestinationDTO): HttpResponse {
-        return client.post("http://localhost:8080/api/${Api.apiKey}/destination") {
+        return client.post("${Api.url}${Api.apiKey}/destination") {
             contentType(ContentType.Application.Json)
             setBody(destinationDTO)
         }

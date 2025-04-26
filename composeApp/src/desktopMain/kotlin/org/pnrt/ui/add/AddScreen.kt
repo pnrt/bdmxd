@@ -1084,7 +1084,6 @@ fun AddVehicleScreen(addViewModel: AddViewModel) {
                     if (addViewModel.isLoadingDriver) {
                         CircularProgressIndicator()
                     } else {
-
                         if (addViewModel.driverList.isEmpty()) {
                             if (SelectedVehicle.selectedVehicle == null) {
                                 Text("Kindly select a vehicle !")
@@ -1158,16 +1157,36 @@ fun AddVehicleScreen(addViewModel: AddViewModel) {
                                                 .fillMaxWidth()
                                                 .padding(8.dp)
                                         ) {
-                                            Text("Name: ${item.name}")
-                                            Text("Phone: ${item.phone}")
-                                            Text("DL: ${item.licenseNumber}")
-                                            Text("Valid Date: ${item.licenseValidTill}")
-                                            Text("Address: ${item.address}")
+                                            Row {
+                                                Column {
+                                                    Text("Name: ${item.name}")
+                                                    Text("Phone: ${item.phone}")
+                                                    Text("DL: ${item.licenseNumber}")
+                                                    Text("Valid Date: ${item.licenseValidTill}")
+                                                    Text("Address: ${item.address}")
+                                                }
+                                                Spacer(modifier = Modifier.weight(1f))
+                                                var confirmDeleteDriver by remember { mutableStateOf(false) }
+                                                TextButton(onClick = {confirmDeleteDriver = true}, modifier = Modifier.padding(16.dp)) {
+                                                    Text("❌")
+                                                }
+                                                if (confirmDeleteDriver) {
+                                                    ConfirmationDialog(
+                                                        message = "Delete Driver",
+                                                        onConfirm = {
+                                                            addViewModel.deleteDriver(item.id, SelectedVehicle.selectedVehicle!!.id)
+                                                            confirmDeleteDriver = false
+                                                        },
+                                                        onDismiss = {confirmDeleteDriver = false}
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+                        Text(addViewModel.messageDriver)
                     }
                 }
             }

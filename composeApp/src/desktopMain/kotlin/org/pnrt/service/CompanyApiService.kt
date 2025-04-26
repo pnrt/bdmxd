@@ -8,6 +8,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.pnrt.model.Client
 import org.pnrt.model.Company
+import org.pnrt.security.Api
 
 class CompanyApiService {
     private val client = HttpClient {
@@ -22,6 +23,6 @@ class CompanyApiService {
     }
 
     suspend fun companyList(): List<Company> {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/company").body<List<Company>>()
+        return client.get("${Api.url}${Api.apiKey}/company").body<List<Company>>()
     }
 }

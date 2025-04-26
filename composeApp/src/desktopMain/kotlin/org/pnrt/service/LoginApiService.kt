@@ -12,12 +12,8 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.pnrt.model.ForAuthentication
 import org.pnrt.model.User
+import org.pnrt.security.Api
 
-
-object Api {
-    val apiKey = "1234567890ABCDEF"
-
-}
 
 class LoginApiService {
     private val client = HttpClient {
@@ -32,7 +28,7 @@ class LoginApiService {
     }
 
     suspend fun logUser(forAuthentication: ForAuthentication): User {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/user/verify") {
+        return client.get("${Api.url}${Api.apiKey}/user/verify") {
             contentType(ContentType.Application.Json)
             setBody(forAuthentication)
         }.body<User>()

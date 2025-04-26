@@ -1,5 +1,6 @@
 package org.pnrt.ui.trips
 
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,12 +38,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.rememberDialogState
 import org.koin.compose.koinInject
 import org.koin.dsl.module
+import org.pnrt.ui.order.ConfirmationDialog
 import org.pnrt.ui.order.SelectedOrder
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -57,7 +60,7 @@ fun TripsScreen() {
     var confirmVehicleAndDriver by remember { mutableStateOf(false) }
     val tripsViewModel: TripsViewModel = koinInject()
     LaunchedEffect(Unit) {
-        if (tripsViewModel.tripList.isEmpty()) {
+        if (tripsViewModel.tripList.isEmpty() && SelectedOrder.order != null) {
             tripsViewModel.getTripList(orderId = SelectedOrder.order!!.orderId)
         }
     }
@@ -135,7 +138,7 @@ fun TripsScreen() {
                                                                 horizontalAlignment = Alignment.CenterHorizontally,
                                                                 verticalArrangement = Arrangement.Center
                                                             ) {
-                                                                Text(text = item.passNumber.toString(),)
+                                                                Text(text = item.passNumber.toString(), fontWeight = FontWeight.Bold)
                                                             }
 
                                                             Spacer(modifier = Modifier.width(16.dp))
@@ -176,8 +179,13 @@ fun TripsScreen() {
                                         }
                                     } else {
                                         val filteredData = tripsViewModel.tripList.filter { trip ->
-                                            val searchNumber = searchText.toLongOrNull()
-                                            trip.passNumber == searchNumber || trip.vehicleName == searchText
+                                            val searchLower = searchText.trim().lowercase()
+                                            val passNumberMatch = trip.passNumber.toString().contains(searchLower)
+                                            val vehicleNameMatch = trip.vehicleName.lowercase().contains(searchLower)
+                                            val ownerNameMatch = trip.ownerName.lowercase().contains(searchLower)
+                                            val driverNameMatch = trip.driverName.lowercase().contains(searchLower)
+
+                                            passNumberMatch || vehicleNameMatch || ownerNameMatch || driverNameMatch
                                         }
                                         Column {
                                             LazyColumn {
@@ -206,7 +214,7 @@ fun TripsScreen() {
                                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                                     verticalArrangement = Arrangement.Center
                                                                 ) {
-                                                                    Text(text = item.passNumber.toString(), )
+                                                                    Text(text = item.passNumber.toString(), fontWeight = FontWeight.Bold)
                                                                 }
 
                                                                 Spacer(modifier = Modifier.width(16.dp))
@@ -234,6 +242,7 @@ fun TripsScreen() {
                                                                     Text("Unload Quantity: ${item.unloadQuantity}")
                                                                     Text("Unload Time: ${formatDateTime(item.endTime)}")
                                                                 }
+
                                                             }
 
                                                             Spacer(modifier = Modifier.height(8.dp))
@@ -272,32 +281,58 @@ fun TripsScreen() {
                             if (tripsViewModel.selectedTrip != null) {
                                 Text("${tripsViewModel.selectedTrip!!.passNumber} - ${tripsViewModel.selectedTrip!!.vehicleName}", fontWeight = FontWeight.Bold)
                             }
-                            Text("Options for selection:")
+                            Text("Options for editing:")
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(16.dp),
-                            ) {
+                            ) { var deleteTrip by remember { mutableStateOf(false) }
                                 Button(onClick = {selectedOption = "Pass"}) {
-                                    Text("Pass No ${if (true) "✅" else "❌"}")
+                                    Text("Pass No ${tripsViewModel.selectedTrip!!.passNumber}")
+                                    Spacer(modifier = Modifier.fillMaxWidth())
                                 }
                                 Button(onClick = {selectedOption = "Load"}) {
-                                    Text("Load ${if (true) "✅" else "❌"}")
+                                    Text("Load ${tripsViewModel.selectedTrip!!.loadedQuantity}")
+                                    Spacer(modifier = Modifier.fillMaxWidth())
                                 }
                                 Button(onClick = {selectedOption = "Cash"}) {
-                                    Text("Cash Advance ${if (true) "✅" else "❌"}")
+                                    Text("Cash Advance ${tripsViewModel.selectedTrip!!.advCash}")
+                                    Spacer(modifier = Modifier.fillMaxWidth())
                                 }
                                 Button(onClick = {selectedOption = "HSD"}) {
-                                    Text("HSD ${if (true) "✅" else "❌"}")
+                                    Text("HSD ${tripsViewModel.selectedTrip!!.dieselUsed}")
+                                    Spacer(modifier = Modifier.fillMaxWidth())
                                 }
                                 Button(onClick = {selectedOption = "Unload"}) {
-                                    Text("Unload ${if (true) "✅" else "❌"}")
+                                    Text("Unload ${tripsViewModel.selectedTrip!!.unloadQuantity}")
+                                    Spacer(modifier = Modifier.fillMaxWidth())
                                 }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    TextButton(onClick = {deleteTrip = true}) {
+                                        Text("❌")
+                                    }
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                                if (deleteTrip) {
+                                    ConfirmationDialog(
+                                        message = "Delete Trip ${tripsViewModel.selectedTrip!!.passNumber}",
+                                        onConfirm = {
+                                            tripsViewModel.deleteTrip(tripsViewModel.selectedTrip!!.id)
+                                            deleteTrip = false
+                                        },
+                                        onDismiss = {deleteTrip = false}
+                                    )
+                                }
+                                Text(tripsViewModel.messageUpdateTrip)
                             }
                         }
                     }
                 }
                 Spacer(modifier = Modifier.width(8.dp))
+
                 Box(
                     modifier = Modifier
                         .weight(0.3f)
@@ -306,18 +341,20 @@ fun TripsScreen() {
                         .background(Color(0xffF8F8F2))
                         .padding(8.dp),
                 ) {
-                    when (selectedOption) {
-                        "" -> {
-                            Column {
-                                Text("⬅️ Select an Option change state... ")
-                                Text("👆 Choose trip first...")
+                    if (tripsViewModel.selectedTrip != null) {
+                        when (selectedOption) {
+                            "" -> {
+                                Column {
+                                    Text("⬅️ Select an Option change state... ")
+                                    Text("👆 Choose trip first...")
+                                }
                             }
+                            "Pass" -> PassScreen(tripsViewModel)
+                            "Load" -> LoadScreen(tripsViewModel)
+                            "Cash" -> CashScreen(tripsViewModel)
+                            "HSD" -> HSDScreen(tripsViewModel)
+                            "Unload" -> UnloadScreen(tripsViewModel)
                         }
-                        "Pass" -> PassScreen()
-                        "Load" -> LoadScreen(tripsViewModel)
-                        "Cash" -> CashScreen()
-                        "HSD" -> HSDScreen()
-                        "Unload" -> UnloadScreen()
                     }
                 }
             }
@@ -335,8 +372,8 @@ fun TripsScreen() {
             } else {
                 Column {
                     var vehicleDialog by remember { mutableStateOf(false) }
-                    var passNumber by remember { mutableStateOf("") }
-                    Text("➕ Add Trip    | ${""}")
+                    var passNumber by remember { mutableStateOf("${if (tripsViewModel.tripList != null && tripsViewModel.tripList.count() > 1) (tripsViewModel.tripList.count() + 1) else ""}") }
+                    Text("➕ Add Trip    | 🔃 Total trips: ${tripsViewModel.tripList.count()} | 🚛 Total quantity(load/unload): ${tripsViewModel.tripList.sumOf { it.unloadQuantity }} / ${tripsViewModel.tripList.sumOf { it.loadedQuantity }} (${tripsViewModel.tripList.sumOf { it.unloadQuantity } - tripsViewModel.tripList.sumOf { it.loadedQuantity }}) || 📜 Ordered Quantity: ${SelectedOrder.order!!.quantity}")
                     Spacer(modifier = Modifier.padding(8.dp))
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -353,14 +390,10 @@ fun TripsScreen() {
                             singleLine = true
                         )
                         Spacer(modifier = Modifier.width(16.dp))
+                        var confirmSaveTrip by remember { mutableStateOf(false) }
                         Button(
                             onClick = {
-                                tripsViewModel.createTrip(
-                                    SelectedOrder.order?.companyId ?: 0,
-                                    SelectedOrder.order?.tpNumber ?: "",
-                                    SelectedOrder.order?.orderId ?: 0 ,
-                                    tripsViewModel.vehicleDetails?.vehicleId ?: 0,
-                                    tripsViewModel.vehicleDetails?.driverId ?: 0)
+                                confirmSaveTrip = true
                             },
                             enabled = tripsViewModel.vehicleDetails != null && SelectedOrder.order != null && tripsViewModel.vehicleDetails!!.active != false
                         ) {
@@ -368,6 +401,23 @@ fun TripsScreen() {
                         }
                         if (vehicleDialog) {
                             SelectionDialogForVehicleAndDriver(onDismiss = {vehicleDialog = false}, tripsViewModel)
+                        }
+                        if (confirmSaveTrip) {
+                            ConfirmationDialog(
+                                message = "Confirm assign vehicle ${tripsViewModel.vehicleDetails!!.vehicleNumber} --> ${passNumber}",
+                                onConfirm =  {
+                                    tripsViewModel.createTrip(
+                                        SelectedOrder.order?.companyId ?: 0,
+                                        SelectedOrder.order?.tpNumber ?: "",
+                                        SelectedOrder.order?.orderId ?: 0 ,
+                                        tripsViewModel.vehicleDetails?.vehicleId ?: 0,
+                                        tripsViewModel.vehicleDetails?.driverId ?: 0,
+                                        passNumber = passNumber.toLong()
+                                    )
+                                    confirmSaveTrip = false
+                                },
+                                onDismiss = {confirmSaveTrip = false}
+                            )
                         }
                     }
                     Text(tripsViewModel.messageCreateTrip)
@@ -493,9 +543,36 @@ fun SelectionDialogForVehicleAndDriver(
 
 
 @Composable
-fun PassScreen() {
-    Column() {
-        Text("Add Pass No.")
+fun PassScreen(tripsViewModel: TripsViewModel) {
+    if (tripsViewModel.isLoadingUpdateTrip) {
+        CircularProgressIndicator()
+    } else {
+        Column() {
+            var passNumber by remember { mutableStateOf("${tripsViewModel.selectedTrip?.passNumber}") }
+            var confirmPass by remember { mutableStateOf(false) }
+            Text("Update Pass No")
+            OutlinedTextField(
+                value = passNumber,
+                onValueChange = {passNumber = it},
+                label = { Text("Pass")},
+                singleLine = true
+            )
+            Button(onClick = {confirmPass = true}) {
+                Text("Update")
+            }
+            if (confirmPass) {
+                ConfirmationDialog(
+                    message = "Update pass!",
+                    onConfirm = {
+                        tripsViewModel.updatePass(id = tripsViewModel.selectedTrip?.id ?: 0, pass = passNumber.toLong())
+                        confirmPass = false
+                    },
+                    onDismiss = {
+                        confirmPass = false
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -504,30 +581,57 @@ fun LoadScreen(tripsViewModel: TripsViewModel) {
     var updateLoad by remember { mutableStateOf(false) }
     var updateDateTime by remember { mutableStateOf(false) }
     var selectedDateTime by remember { mutableStateOf(LocalDateTime.now()) }
-    LazyColumn {
-        item {
-            Text("Load update")
-            Button(onClick = {updateLoad = !updateLoad}) {
-                Text("🪨 Update Quantity")
-            }
-            if (updateLoad) {
-                Text("Update Quantity")
-                var quantity by remember { mutableStateOf("${tripsViewModel.selectedTrip!!.loadedQuantity}") }
-                OutlinedTextField(
-                    value = quantity,
-                    onValueChange = {quantity = it}
-                )
-                Button(onClick = {}) {
-                    Text("Update")
+
+    var confirmQuantity by remember { mutableStateOf(false) }
+    var confirmDate by remember { mutableStateOf(false) }
+    if (tripsViewModel.isLoadingUpdateTrip) {
+        CircularProgressIndicator()
+    } else {
+        LazyColumn {
+            item {
+                Text("Load update")
+                Button(onClick = {updateLoad = !updateLoad}) {
+                    Text("🪨 Update quantity")
                 }
-            }
-            Button(onClick = {updateDateTime = !updateDateTime}) {
-                Text("📅 Update Date and Time")
-            }
-            if (updateDateTime) {
-                DesktopDateTimePicker(default = selectedDateTime) {
-                    selectedDateTime = it
-//
+                if (updateLoad) {
+                    Text("Update load quantity")
+                    var quantity by remember { mutableStateOf("${tripsViewModel.selectedTrip?.loadedQuantity}") }
+                    OutlinedTextField(
+                        value = quantity,
+                        onValueChange = {quantity = it}
+                    )
+                    Button(onClick = {confirmQuantity = true}) {
+                        Text("Update")
+                    }
+                    if (confirmQuantity) {
+                        ConfirmationDialog(
+                            message = "Update Load Quantity",
+                            onConfirm = {
+                                tripsViewModel.updateLoad(id = tripsViewModel.selectedTrip?.id ?: 0, quantity = quantity.toDouble())
+                                confirmQuantity = false
+                            },
+                            onDismiss = {confirmQuantity = false}
+                        )
+                    }
+                }
+                Button(onClick = {updateDateTime = !updateDateTime}) {
+                    Text("📅 Update Date and Time")
+                }
+                if (updateDateTime) {
+                    DesktopDateTimePicker(default = selectedDateTime) {
+                        selectedDateTime = it
+                        confirmDate = true
+                    }
+                }
+                if (confirmDate) {
+                    ConfirmationDialog(
+                        message = "Update Load Date",
+                        onDismiss = {
+                            tripsViewModel.updateLoadTime(id = tripsViewModel.selectedTrip?.id ?: 0, time = selectedDateTime)
+                            confirmDate = false
+                        },
+                        onConfirm = {confirmDate = false}
+                    )
                 }
             }
         }
@@ -535,23 +639,132 @@ fun LoadScreen(tripsViewModel: TripsViewModel) {
 }
 
 @Composable
-fun CashScreen() {
-    Column {
-        Text("Advance Cash")
+fun CashScreen(tripsViewModel: TripsViewModel) {
+    if (tripsViewModel.isLoadingUpdateTrip) {
+        CircularProgressIndicator()
+    } else {
+        Column() {
+            var cash by remember { mutableStateOf("${tripsViewModel.selectedTrip?.advCash}") }
+            var confirmPass by remember { mutableStateOf(false) }
+            Text("Update cash advance")
+            OutlinedTextField(
+                value = cash,
+                onValueChange = {cash = it},
+                label = { Text("Cash advance")},
+                singleLine = true
+            )
+            Button(onClick = {confirmPass = true}) {
+                Text("Update")
+            }
+            if (confirmPass) {
+                ConfirmationDialog(
+                    message = "Update cash advance! $cash to ${tripsViewModel.selectedTrip?.vehicleName}",
+                    onConfirm = {
+                        tripsViewModel.updateCash(id = tripsViewModel.selectedTrip?.id ?: 0, cash = cash.toDouble())
+                        confirmPass = false
+                    },
+                    onDismiss = {
+                        confirmPass = false
+                    }
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun HSDScreen() {
-    Column {
-        Text("HSD")
+fun HSDScreen(tripsViewModel: TripsViewModel) {
+    if (tripsViewModel.isLoadingUpdateTrip) {
+        CircularProgressIndicator()
+    } else {
+        Column() {
+            var cash by remember { mutableStateOf("${tripsViewModel.selectedTrip?.dieselUsed}") }
+            var confirmPass by remember { mutableStateOf(false) }
+            Text("Update HSD ")
+            OutlinedTextField(
+                value = cash,
+                onValueChange = {cash = it},
+                label = { Text("HSD")},
+                singleLine = true
+            )
+            Button(onClick = {confirmPass = true}) {
+                Text("Update")
+            }
+            if (confirmPass) {
+                ConfirmationDialog(
+                    message = "Update HSD! $cash to ${tripsViewModel.selectedTrip?.vehicleName}",
+                    onConfirm = {
+                        tripsViewModel.updateHSD(id = tripsViewModel.selectedTrip?.id ?: 0, amount = cash.toDouble())
+                        confirmPass = false
+                    },
+                    onDismiss = {
+                        confirmPass = false
+                    }
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun UnloadScreen() {
-    Column {
-        Text("Unloading Quantity")
+fun UnloadScreen(tripsViewModel: TripsViewModel) {
+    var updateUnload by remember { mutableStateOf(false) }
+    var updateDateTime by remember { mutableStateOf(false) }
+    var selectedDateTime by remember { mutableStateOf(LocalDateTime.now()) }
+
+    var confirmQuantity by remember { mutableStateOf(false) }
+    var confirmDate by remember { mutableStateOf(false) }
+    if (tripsViewModel.isLoadingUpdateTrip) {
+        CircularProgressIndicator()
+    } else {
+        LazyColumn {
+            item {
+                Text("Unload update")
+                Button(onClick = {updateUnload = !updateUnload}) {
+                    Text("🪨 Update Quantity")
+                }
+                if (updateUnload) {
+                    Text("Update unload quantity")
+                    var quantity by remember { mutableStateOf("${tripsViewModel.selectedTrip?.unloadQuantity}") }
+                    OutlinedTextField(
+                        value = quantity,
+                        onValueChange = {quantity = it}
+                    )
+                    Button(onClick = {confirmQuantity = true}) {
+                        Text("Update")
+                    }
+                    if (confirmQuantity) {
+                        ConfirmationDialog(
+                            message = "Update Load Quantity",
+                            onConfirm = {
+                                tripsViewModel.updateUnload(id = tripsViewModel.selectedTrip?.id ?: 0, quantity = quantity.toDouble())
+                                confirmQuantity = false
+                            },
+                            onDismiss = {confirmQuantity = false}
+                        )
+                    }
+                }
+                Button(onClick = {updateDateTime = !updateDateTime}) {
+                    Text("📅 Update Date and Time")
+                }
+                if (updateDateTime) {
+                    DesktopDateTimePicker(default = selectedDateTime) {
+                        selectedDateTime = it
+                        confirmDate = true
+                    }
+                }
+                if (confirmDate) {
+                    ConfirmationDialog(
+                        message = "Update unload date",
+                        onDismiss = {
+                            tripsViewModel.updateUnloadTime(id = tripsViewModel.selectedTrip?.id ?: 0, time = selectedDateTime)
+                            confirmDate = false
+                        },
+                        onConfirm = {confirmDate = false}
+                    )
+                }
+            }
+        }
     }
 }
 

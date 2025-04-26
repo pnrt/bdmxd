@@ -13,6 +13,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.pnrt.model.Owner
 import org.pnrt.model.OwnerDTO
+import org.pnrt.security.Api
 
 class OwnerApiService {
     private val client = HttpClient {
@@ -27,14 +28,14 @@ class OwnerApiService {
     }
 
     suspend fun getOwnerList(): List<Owner> {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/owner").body<List<Owner>>()
+        return client.get("${Api.url}${Api.apiKey}/owner").body<List<Owner>>()
     }
     suspend fun getSearchOwnerList(searchString: String): List<Owner> {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/owner/search?query=${searchString}").body<List<Owner>>()
+        return client.get("${Api.url}${Api.apiKey}/owner/search?query=${searchString}").body<List<Owner>>()
     }
 
     suspend fun createOwner(ownerDTO: OwnerDTO): HttpResponse {
-        return client.post("http://localhost:8080/api/${Api.apiKey}/owner") {
+        return client.post("${Api.url}${Api.apiKey}/owner") {
             contentType(ContentType.Application.Json)
             setBody(ownerDTO)
         }

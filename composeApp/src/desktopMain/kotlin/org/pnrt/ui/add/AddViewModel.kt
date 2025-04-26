@@ -320,7 +320,7 @@ fun getMineralList() {
     var messageVehicle by mutableStateOf("")
 
     var vehicleList: List<Vehicle> by mutableStateOf(emptyList())
-    val vehicleApiService = VehicleApiService()
+    private val vehicleApiService = VehicleApiService()
 
     fun getVehicle(ownerId: Long) {
         isLoadingVehicle = true
@@ -361,7 +361,7 @@ fun getMineralList() {
     var messageDriver by mutableStateOf("")
 
     var driverList by mutableStateOf<List<Driver>>(emptyList())
-    var driverApiService = DriverApiService()
+    private var driverApiService = DriverApiService()
 
     fun getDriver(vehicleId: Long) {
         isLoadingDriver = true
@@ -389,6 +389,25 @@ fun getMineralList() {
                     getDriver(vehicleId)
                 } else {
                     messageDriver = "Error While creating driver ❌"
+                }
+            } catch (e: Exception) {
+                messageDriver = "Error: ${e.message}"
+            } finally {
+                isLoadingDriver = false
+            }
+        }
+    }
+    fun deleteDriver(id: Long, vehicleId: Long) {
+        isLoadingDriver = true
+        messageDriver = ""
+        viewModelScope.launch {
+            try {
+                val response = driverApiService.deleteDriver(id)
+                if (response.status.isSuccess()) {
+                    messageDriver = "Successfully deleted ✅"
+                    getDriver(vehicleId)
+                } else {
+                    messageDriver = "Error while deleting ❌ : ${response.body<Any>()}"
                 }
             } catch (e: Exception) {
                 messageDriver = "Error: ${e.message}"

@@ -11,7 +11,8 @@ data class Driver(
     val phone: String,
     val licenseNumber: String,
     val licenseValidTill: String,
-    val address: String
+    val address: String,
+    val status: Boolean
 )
 
 @Serializable

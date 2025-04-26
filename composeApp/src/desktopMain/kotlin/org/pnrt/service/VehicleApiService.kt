@@ -15,6 +15,7 @@ import org.pnrt.model.OwnerDTO
 import org.pnrt.model.Vehicle
 import org.pnrt.model.VehicleDTO
 import org.pnrt.model.VehicleDetails
+import org.pnrt.security.Api
 
 class VehicleApiService {
     private val client = HttpClient {
@@ -29,17 +30,17 @@ class VehicleApiService {
     }
 
     suspend fun getVehicleWithOwnerId(ownerId: Long): List<Vehicle> {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/vehicle/${ownerId}").body<List<Vehicle>>()
+        return client.get("${Api.url}${Api.apiKey}/vehicle/${ownerId}").body<List<Vehicle>>()
     }
 
     suspend fun createVehicle(vehicleDTO: VehicleDTO): HttpResponse {
-        return client.post("http://localhost:8080/api/${Api.apiKey}/vehicle") {
+        return client.post("${Api.url}${Api.apiKey}/vehicle") {
             contentType(ContentType.Application.Json)
             setBody(vehicleDTO)
         }
     }
 
     suspend fun getVehicleDetails(vehicleNumber: String): VehicleDetails {
-        return client.get("http://localhost:8080/api/${Api.apiKey}/vehicle/details/${vehicleNumber}").body<VehicleDetails>()
+        return client.get("${Api.url}${Api.apiKey}/vehicle/details/${vehicleNumber}").body<VehicleDetails>()
     }
 }
