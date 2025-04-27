@@ -10,5 +10,9 @@ data class Company(
     val address: String,
     val contactEmail: String,
     val phone: String,
+    val pincode: String,
+    val state: String,
+    val code: String,
+    val gstin: String,
     val isActive: Boolean = true,
 )

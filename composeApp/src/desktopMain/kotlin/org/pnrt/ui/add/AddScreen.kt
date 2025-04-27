@@ -1,5 +1,6 @@
 package org.pnrt.ui.add
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -731,8 +733,16 @@ fun AddMineralsScreen(addViewModel: AddViewModel) {
                                         Column(
                                             modifier = Modifier.padding(16.dp)
                                         ) {
-                                            Text("Item Name: ${item.name}")
-                                            Text("Unit: ${item.unit}")
+                                            Row {
+                                                Text("Item Name: ${item.name}")
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text("Unit: ${item.unit}")
+                                            }
+                                            Row {
+                                                Text("SHN/SAC: ${item.hsn}")
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text("GST: ${(item.gst * 100).toInt()}%")
+                                            }
                                         }
                                     }
                                 }
@@ -746,6 +756,8 @@ fun AddMineralsScreen(addViewModel: AddViewModel) {
             }
             var selectedMineral by remember { mutableStateOf("") }
             var unit by remember { mutableStateOf("") }
+            var hsn by remember { mutableStateOf("") }
+            var gst by remember { mutableStateOf("") }
             Box(
                 modifier = Modifier
                     .weight(0.35f)
@@ -774,14 +786,41 @@ fun AddMineralsScreen(addViewModel: AddViewModel) {
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                             modifier = Modifier.fillMaxWidth(0.7f)
                         )
+                        OutlinedTextField(
+                            value = hsn,
+                            onValueChange = { hsn = it },
+                            label = { Text("HSN/SAC") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            modifier = Modifier.fillMaxWidth(0.7f)
+                        )
+                        OutlinedTextField(
+                            value = gst,
+                            onValueChange = { gst = it },
+                            label = { Text("GST %") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            modifier = Modifier.fillMaxWidth(0.7f)
+                        )
+                        var confirmMineral by remember { mutableStateOf(false) }
                         Button(
                             onClick = {
-                                addViewModel.postMineral(name = selectedMineral, unit = unit)
+                                confirmMineral = true
                             },
                             modifier = Modifier.fillMaxWidth(0.3f),
                             enabled = selectedMineral.isNotEmpty() && unit.isNotEmpty()
                         ) {
                             Text("Save")
+                        }
+                        if (confirmMineral) {
+                            ConfirmationDialog(
+                                message = "Save mineral $selectedMineral $unit",
+                                onDismiss = {confirmMineral = false},
+                                onConfirm = {
+                                    addViewModel.postMineral(name = selectedMineral, unit = unit, hsn = hsn, gst = gst.toDouble()/100)
+                                    confirmMineral = false
+                                }
+                            )
                         }
                         Text(addViewModel.messageMineralPost)
                     }
@@ -833,6 +872,7 @@ fun AddOwnerScreen(addViewModel: AddViewModel, goToVehicle: () -> Unit) {
                                 Card(
                                     backgroundColor = Color.White,
                                     elevation = 4.dp,
+                                    border = BorderStroke(1.dp, if (item.isActive) Color(0xFF2E7D32) else Color.Red),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 8.dp)
@@ -853,6 +893,22 @@ fun AddOwnerScreen(addViewModel: AddViewModel, goToVehicle: () -> Unit) {
                                         Text("Phone: ${item.ownerPhone}")
                                         Text("PAN: ${item.ownerPan}")
                                         Text("Type: ${item.ownerType}    Active: ${item.isActive}")
+                                        var confirmChangeActive by remember { mutableStateOf(false) }
+                                        Button(onClick = {confirmChangeActive = true}) {
+                                            Text("Change ${if (item.isActive) "🔴" else "🟢"}")
+                                        }
+                                        if (confirmChangeActive) {
+                                            ConfirmationDialog(
+                                                message = "Change status of ${item.ownerName} -> ${!item.isActive}",
+                                                onConfirm = {
+                                                    addViewModel.updateOwnerStatusActive(id = item.id, status = !item.isActive)
+                                                    confirmChangeActive = false
+                                                },
+                                                onDismiss = {
+                                                    confirmChangeActive = false
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -899,6 +955,7 @@ fun AddOwnerScreen(addViewModel: AddViewModel, goToVehicle: () -> Unit) {
                                     Card(
                                         backgroundColor = Color.White,
                                         elevation = 4.dp,
+                                        border = BorderStroke(1.dp, if (item.isActive) Color(0xFF2E7D32) else Color.Red),
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(vertical = 8.dp)
@@ -920,6 +977,22 @@ fun AddOwnerScreen(addViewModel: AddViewModel, goToVehicle: () -> Unit) {
                                             Text("Phone: ${item.ownerPhone}")
                                             Text("PAN: ${item.ownerPan}")
                                             Text("Type: ${item.ownerType}    Active: ${item.isActive}")
+                                            var confirmChangeActive by remember { mutableStateOf(false) }
+                                            Button(onClick = {confirmChangeActive = true}) {
+                                                Text("Change ${if (item.isActive) "🔴" else "🟢"}")
+                                            }
+                                            if (confirmChangeActive) {
+                                                ConfirmationDialog(
+                                                    message = "Change status of ${item.ownerName} -> ${!item.isActive}",
+                                                    onConfirm = {
+                                                        addViewModel.updateOwnerStatusActive(id = item.id, status = !item.isActive)
+                                                        confirmChangeActive = false
+                                                    },
+                                                    onDismiss = {
+                                                        confirmChangeActive = false
+                                                    }
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -935,6 +1008,10 @@ fun AddOwnerScreen(addViewModel: AddViewModel, goToVehicle: () -> Unit) {
             var ownerPhone by remember { mutableStateOf("") }
             var ownerPan by remember { mutableStateOf("") }
             var ownerType by remember { mutableStateOf("") }
+            var pincode by remember { mutableStateOf("") }
+            var state by remember { mutableStateOf("") }
+            var code by remember { mutableStateOf("") }
+            var gstin by remember { mutableStateOf("") }
 
             Box(
                 modifier = Modifier
@@ -979,24 +1056,62 @@ fun AddOwnerScreen(addViewModel: AddViewModel, goToVehicle: () -> Unit) {
                             label = { Text("PAN")},
                             singleLine = true
                         )
+                        var chooseType by remember { mutableStateOf(false) }
+                        OutlinedButton(onClick = {chooseType = true}) {
+                            Text(if (ownerType.isEmpty()) "Choose type 🔽" else ownerType.uppercase())
+                        }
+                        if (chooseType) {
+                            Button(onClick = {
+                                ownerType = "business"
+                                chooseType = false
+                            }) {
+                                Text("Business")
+                            }
+                            Button(onClick = {
+                                ownerType = "self"
+                                gstin = "self"
+                                chooseType = false
+                            }) {
+                                Text("Self")
+                            }
+                        }
+
                         OutlinedTextField(
-                            value = ownerType,
-                            onValueChange = {ownerType = it},
-                            label = { Text("Type")},
+                            value = pincode,
+                            onValueChange = {pincode = it},
+                            label = { Text("Pincode")},
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = state,
+                            onValueChange = {state = it},
+                            label = { Text("State")},
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                        value = code,
+                        onValueChange = {code = it},
+                        label = { Text("Code")},
+                        singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = gstin,
+                            onValueChange = {gstin = it.uppercase()},
+                            label = { Text("GSTIN")},
                             singleLine = true
                         )
                         var confirmOwnerSave by remember { mutableStateOf(false) }
                         Button(
                             onClick = {confirmOwnerSave = true},
-                            enabled = ownerName.isNotEmpty() && ownerAddress.isNotEmpty() && ownerEmail.isNotEmpty() && ownerPhone.isNotEmpty() && ownerPan.isNotEmpty() && ownerType.isNotEmpty()
+                            enabled = ownerName.isNotEmpty() && ownerAddress.isNotEmpty() && ownerEmail.isNotEmpty() && ownerPhone.isNotEmpty() && ownerPan.isNotEmpty() && ownerType.isNotEmpty() && pincode.isNotEmpty() && state.isNotEmpty() && code.isNotEmpty() && gstin.isNotEmpty()
                         ) {
                             Text("Save")
                         }
                         if (confirmOwnerSave) {
                             ConfirmationDialog(
-                                message = "Save Owner",
+                                message = "Save Owner $ownerName",
                                 onConfirm = {
-                                    addViewModel.createOwner(name = ownerName, type = ownerType, phone = ownerPhone, pan = ownerPan, email = ownerEmail, address = ownerAddress)
+                                    addViewModel.createOwner(name = ownerName, type = ownerType.lowercase(), phone = ownerPhone, pan = ownerPan, email = ownerEmail, address = ownerAddress, pincode = pincode, state = state.lowercase(), code = code, gstin = gstin)
                                 },
                                 onDismiss = {confirmOwnerSave = false}
                             )

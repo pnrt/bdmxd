@@ -96,6 +96,7 @@ class TripsViewModel : ViewModel() {
 
     var isLoadingUpdateTrip by mutableStateOf(false)
     var messageUpdateTrip by mutableStateOf("")
+    var showTripPassSnack by mutableStateOf(false)
 
     fun updatePass(id: Long, pass: Long) {
         isLoadingUpdateTrip = true
@@ -106,11 +107,14 @@ class TripsViewModel : ViewModel() {
                 if (response.status.isSuccess()) {
                     messageUpdateTrip = "Successfully updated ✅"
                     getTripList(SelectedOrder.order?.orderId ?: 0)
+                    showTripPassSnack = true
                 } else {
                     messageUpdateTrip = "Error: Update ❌: ${response.body<Any>()}"
+                    showTripPassSnack = true
                 }
             } catch (e: Exception) {
                 messageUpdateTrip = "Error: ${e.message}"
+                showTripPassSnack = true
             } finally {
                 isLoadingUpdateTrip = false
             }

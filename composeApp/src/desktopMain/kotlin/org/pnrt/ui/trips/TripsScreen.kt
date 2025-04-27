@@ -1,6 +1,13 @@
 package org.pnrt.ui.trips
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +23,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -32,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,8 +52,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.rememberDialogState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.dsl.module
 import org.pnrt.ui.order.ConfirmationDialog
@@ -111,72 +125,133 @@ fun TripsScreen() {
                                     Text("No listed trips kindly add ➕")
                                     Text(tripsViewModel.messageTripList)
                                 } else {
+                                    val tripListState = rememberLazyListState()
+
+                                    var scrollStarted by remember { mutableStateOf(false) }
+                                    if (tripListState.isScrollInProgress) {
+                                        scrollStarted = true
+                                    }
+
                                     if (searchText.isEmpty()) {
-                                        LazyColumn {
-                                            items(tripsViewModel.tripList) { item ->
-                                                Card(
-                                                    backgroundColor = if (tripsViewModel.selectedTrip == item) Color(0xFFF5F5F5) else Color.White,
-                                                    elevation = 4.dp,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(vertical = 8.dp)
-                                                        .clickable { tripsViewModel.selectedTrip = item }
-                                                ) {
-                                                    Column(
+                                        Box(
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            LazyColumn(
+                                                state = tripListState,
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+                                                items(tripsViewModel.tripList) { item ->
+                                                    Card(
+                                                        backgroundColor = if (tripsViewModel.selectedTrip == item) Color(
+                                                            0xFFF5F5F5
+                                                        ) else Color.White,
+                                                        elevation = 4.dp,
+                                                        border = BorderStroke(
+                                                            1.dp,
+                                                            borderColor(item.status)
+                                                        ),
                                                         modifier = Modifier
                                                             .fillMaxWidth()
-                                                            .padding(16.dp)
+                                                            .padding(vertical = 8.dp)
+                                                            .padding(end = 16.dp)
+                                                            .clickable {
+                                                                tripsViewModel.selectedTrip = item
+                                                            }
                                                     ) {
-                                                        Row(
-                                                            modifier = Modifier.fillMaxWidth(),
-                                                            verticalAlignment = Alignment.CenterVertically
+                                                        Column(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(16.dp)
                                                         ) {
-                                                            // Pass Number block
-                                                            Column(
-                                                                modifier = Modifier
-                                                                    .width(80.dp),
-                                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                                verticalArrangement = Arrangement.Center
+                                                            Row(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                verticalAlignment = Alignment.CenterVertically
                                                             ) {
-                                                                Text(text = item.passNumber.toString(), fontWeight = FontWeight.Bold)
+                                                                // Pass Number block
+                                                                Column(
+                                                                    modifier = Modifier
+                                                                        .width(80.dp),
+                                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                                    verticalArrangement = Arrangement.Center
+                                                                ) {
+                                                                    Text(
+                                                                        text = item.passNumber.toString(),
+                                                                        fontWeight = FontWeight.Bold
+                                                                    )
+                                                                }
+
+                                                                Spacer(modifier = Modifier.width(16.dp))
+
+                                                                // Vehicle & General Info
+                                                                Column(
+                                                                    modifier = Modifier.weight(1f)
+                                                                ) {
+                                                                    Text("Vehicle: ${item.vehicleName}")
+                                                                    Text("Pass: ${item.passNumber}")
+                                                                    Text("Quantity: ${item.loadedQuantity}")
+                                                                    Text("Owner: ${item.ownerName}")
+                                                                    Text("Driver: ${item.driverName}")
+                                                                }
+
+                                                                Spacer(modifier = Modifier.width(16.dp))
+
+                                                                // Status Info
+                                                                Column(
+                                                                    modifier = Modifier.weight(1f)
+                                                                ) {
+                                                                    Text("Status:")
+                                                                    Text("Load Quantity: ${item.loadedQuantity}")
+                                                                    Text(
+                                                                        "Load Time: ${
+                                                                            formatDateTime(
+                                                                                item.startTime
+                                                                            )
+                                                                        }"
+                                                                    )
+                                                                    Text("Unload Quantity: ${item.unloadQuantity}")
+                                                                    Text(
+                                                                        "Unload Time: ${
+                                                                            formatDateTime(
+                                                                                item.endTime
+                                                                            )
+                                                                        }"
+                                                                    )
+                                                                }
                                                             }
 
-                                                            Spacer(modifier = Modifier.width(16.dp))
+                                                            Spacer(modifier = Modifier.height(8.dp))
 
-                                                            // Vehicle & General Info
-                                                            Column(
-                                                                modifier = Modifier.weight(1f)
+                                                            // Remarks
+                                                            Row(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.SpaceBetween
                                                             ) {
-                                                                Text("Vehicle: ${item.vehicleName}")
-                                                                Text("Pass: ${item.passNumber}")
-                                                                Text("Quantity: ${item.loadedQuantity}")
-                                                                Text("Owner: ${item.ownerName}")
-                                                                Text("Driver: ${item.driverName}")
-                                                            }
-
-                                                            Spacer(modifier = Modifier.width(16.dp))
-
-                                                            // Status Info
-                                                            Column(
-                                                                modifier = Modifier.weight(1f)
-                                                            ) {
-                                                                Text("Status:")
-                                                                Text("Load Quantity: ${item.loadedQuantity}")
-                                                                Text("Load Time: ${formatDateTime(item.startTime)}")
-                                                                Text("Unload Quantity: ${item.unloadQuantity}")
-                                                                Text("Unload Time: ${formatDateTime(item.endTime)}")
+                                                                Text("Remark: ${item.remarks} ")
+                                                                Text(if (item.loadedQuantity == item.unloadQuantity) "🟢" else "🔴")
                                                             }
                                                         }
 
-                                                        Spacer(modifier = Modifier.height(8.dp))
-
-                                                        // Remarks
-                                                        Text("Remark: ${item.remarks}")
                                                     }
-
                                                 }
                                             }
+
+                                            if (scrollStarted) {
+                                                VerticalScrollbar(
+                                                    adapter = rememberScrollbarAdapter(tripListState),
+                                                    modifier = Modifier
+                                                        .fillMaxHeight()
+                                                        .width(6.dp) // the actual scrollbar width inside the track
+                                                        .background(
+                                                            color = Color.Gray.copy(alpha = 0.3f), // track color
+                                                            shape = RoundedCornerShape(50) // rounded track
+                                                        )
+                                                        .align(Alignment.CenterEnd)
+
+                                                )
+                                            }
                                         }
+
                                     } else {
                                         val filteredData = tripsViewModel.tripList.filter { trip ->
                                             val searchLower = searchText.trim().lowercase()
@@ -193,6 +268,7 @@ fun TripsScreen() {
                                                     Card(
                                                         backgroundColor = if (tripsViewModel.selectedTrip == item) Color(0xFFF5F5F5) else Color.White,
                                                         elevation = 4.dp,
+                                                        border = BorderStroke(1.dp, borderColor(item.status)),
                                                         modifier = Modifier
                                                             .fillMaxWidth()
                                                             .padding(vertical = 8.dp)
@@ -248,7 +324,14 @@ fun TripsScreen() {
                                                             Spacer(modifier = Modifier.height(8.dp))
 
                                                             // Remarks
-                                                            Text("Remark: ${item.remarks}")
+                                                            Row(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.SpaceBetween
+                                                            ) {
+                                                                Text("Remark: ${item.remarks} ")
+                                                                Text(if (item.loadedQuantity == item.unloadQuantity) "🟢" else "🔴")
+                                                            }
                                                         }
 
                                                     }
@@ -373,7 +456,28 @@ fun TripsScreen() {
                 Column {
                     var vehicleDialog by remember { mutableStateOf(false) }
                     var passNumber by remember { mutableStateOf("${if (tripsViewModel.tripList != null && tripsViewModel.tripList.count() > 1) (tripsViewModel.tripList.count() + 1) else ""}") }
-                    Text("➕ Add Trip    | 🔃 Total trips: ${tripsViewModel.tripList.count()} | 🚛 Total quantity(load/unload): ${tripsViewModel.tripList.sumOf { it.unloadQuantity }} / ${tripsViewModel.tripList.sumOf { it.loadedQuantity }} (${tripsViewModel.tripList.sumOf { it.unloadQuantity } - tripsViewModel.tripList.sumOf { it.loadedQuantity }}) || 📜 Ordered Quantity: ${SelectedOrder.order!!.quantity}")
+
+                    if (SelectedOrder.order == null) {
+                        Text("➕ Add Trip")
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(text = "➕ Add Trip")
+                            Text(text = "|")
+                            Text(text = "🔃 Total trips: ${tripsViewModel.tripList.count()}")
+                            Text(text = "|")
+                            Text(
+                                text = "🚛 Total quantity (load/unload): " +
+                                        "${tripsViewModel.tripList.sumOf { it.unloadQuantity }} / " +
+                                        "${tripsViewModel.tripList.sumOf { it.loadedQuantity }} " +
+                                        "(${tripsViewModel.tripList.sumOf { it.unloadQuantity } - tripsViewModel.tripList.sumOf { it.loadedQuantity }})"
+                            )
+                            Text(text = "||")
+                            Text(text = "📜 Ordered Quantity: ${SelectedOrder.order?.quantity ?: 0}")
+                        }
+                    }
                     Spacer(modifier = Modifier.padding(8.dp))
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -421,6 +525,18 @@ fun TripsScreen() {
                         }
                     }
                     Text(tripsViewModel.messageCreateTrip)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        AlertSnackBar(
+                            message = tripsViewModel.messageUpdateTrip,
+                            isSuccess = true,
+                            visible = tripsViewModel.showTripPassSnack,
+                            onDismiss = { tripsViewModel.showTripPassSnack = false }
+                        )
+                    }
                 }
             }
         }
@@ -572,6 +688,18 @@ fun PassScreen(tripsViewModel: TripsViewModel) {
                     }
                 )
             }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                AlertSnackBar(
+                    message = tripsViewModel.messageUpdateTrip,
+                    isSuccess = true,
+                    visible = tripsViewModel.showTripPassSnack,
+                    onDismiss = { tripsViewModel.showTripPassSnack = false }
+                )
+            }
         }
     }
 }
@@ -622,15 +750,18 @@ fun LoadScreen(tripsViewModel: TripsViewModel) {
                         selectedDateTime = it
                         confirmDate = true
                     }
+                    Text(selectedDateTime.toString())
                 }
                 if (confirmDate) {
                     ConfirmationDialog(
                         message = "Update Load Date",
                         onDismiss = {
-                            tripsViewModel.updateLoadTime(id = tripsViewModel.selectedTrip?.id ?: 0, time = selectedDateTime)
                             confirmDate = false
                         },
-                        onConfirm = {confirmDate = false}
+                        onConfirm = {
+                            tripsViewModel.updateLoadTime(id = tripsViewModel.selectedTrip?.id ?: 0, time = selectedDateTime)
+                            confirmDate = false
+                        }
                     )
                 }
             }
@@ -757,10 +888,12 @@ fun UnloadScreen(tripsViewModel: TripsViewModel) {
                     ConfirmationDialog(
                         message = "Update unload date",
                         onDismiss = {
-                            tripsViewModel.updateUnloadTime(id = tripsViewModel.selectedTrip?.id ?: 0, time = selectedDateTime)
                             confirmDate = false
                         },
-                        onConfirm = {confirmDate = false}
+                        onConfirm = {
+                            tripsViewModel.updateUnloadTime(id = tripsViewModel.selectedTrip?.id ?: 0, time = selectedDateTime)
+                            confirmDate = false
+                        }
                     )
                 }
             }
@@ -832,6 +965,60 @@ fun NumberInput(label: String, value: Int, min: Int, max: Int, onValueChange: (I
                 onClick = { if (value < max) onValueChange(value + 1) },
                 enabled = value < max
             ) { Text("+") }
+        }
+    }
+}
+
+fun borderColor(status: String): Color {
+    return when(status) {
+        "scheduled" -> Color.White
+        "load" -> Color(0xFFFFD700)
+        "unload" -> Color(0xFF4CAF50)
+        "success" -> Color(0xFF2E7D32)
+        else -> Color.Black
+    }
+}
+
+@Composable
+fun AlertSnackBar(
+    message: String,
+    isSuccess: Boolean = true,
+    visible: Boolean,
+    onDismiss: () -> Unit,
+    durationMillis: Long = 5000L
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(visible) {
+        if (visible) {
+            coroutineScope.launch {
+                delay(durationMillis)
+                onDismiss()
+            }
+        }
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 24.dp)
+                .background(
+                    color = if (isSuccess) Color(0xFF4CAF50) else Color(0xFFF44336),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(horizontal = 16.dp, 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = message,
+                fontSize = 16.sp,
+                color = Color.White,
+            )
         }
     }
 }

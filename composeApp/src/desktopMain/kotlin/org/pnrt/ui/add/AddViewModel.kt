@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.ktor.client.call.body
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.pnrt.model.Client
 import org.pnrt.model.ClientDTO
@@ -225,12 +226,12 @@ fun getMineralList() {
         }
     }
 }
-    fun postMineral( companyId: Long = LogUser.presentUser?.companyId ?: 0, name: String, unit: String){
+    fun postMineral( companyId: Long = LogUser.presentUser?.companyId ?: 0, name: String, unit: String, hsn: String, gst: Double){
         isLoadingMineralPost = true
         messageMineralPost = ""
         viewModelScope.launch {
             try {
-                val mineral = MineralDTO(companyId = companyId, name = name, unit = unit)
+                val mineral = MineralDTO(companyId = companyId, name = name, unit = unit, hsn = hsn, gst= gst)
                 val response = mineralApiService.addMineral(mineral)
                 if (response.status.isSuccess()) {
                     messageMineralPost = "Success ✅ ${response.body<Mineral>()}"
@@ -294,18 +295,38 @@ fun getMineralList() {
         }
     }
 
-    fun createOwner(name: String, type: String, phone: String, pan: String, email: String, address: String) {
+    fun createOwner(name: String, type: String, phone: String, pan: String, email: String, address: String, pincode: String, state: String, code: String, gstin: String) {
         isLoadingOwner = true
         messageOwner = ""
         viewModelScope.launch {
             try {
-                val ownerEntered = OwnerDTO(ownerName = name, ownerType = type, ownerPhone = phone, ownerPan = pan, ownerEmail = email, ownerAddress = address)
+                val ownerEntered = OwnerDTO(ownerName = name, ownerType = type, ownerPhone = phone, ownerPan = pan, ownerEmail = email, ownerAddress = address, pincode = pincode, state = state, code = code, gstin = gstin)
                 val response = ownerApiService.createOwner(ownerEntered)
                 if (response.status.isSuccess()) {
                     messageOwner = "Successfully created ✅"
                     getOwner()
                 } else {
                     messageOwner = "Error While creating owner ❌"
+                }
+            } catch (e: Exception) {
+                messageOwner = "Error: ${e.message}"
+            } finally {
+                isLoadingOwner = false
+            }
+        }
+    }
+
+    fun updateOwnerStatusActive(id: Long, status: Boolean) {
+        isLoadingOwner = true
+        messageOwner = ""
+        viewModelScope.launch {
+            try {
+                val response = ownerApiService.updateStatusActive(active = status, id = id)
+                if (response.status.isSuccess()) {
+                    messageOwner = "Successfully updated ✅"
+                    getOwner()
+                } else {
+                    messageOwner = "Error: updating ${response.body<Any>()}"
                 }
             } catch (e: Exception) {
                 messageOwner = "Error: ${e.message}"

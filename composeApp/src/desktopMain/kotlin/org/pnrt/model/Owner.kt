@@ -15,6 +15,11 @@ data class Owner(
     val ownerEmail: String,
     val ownerAddress: String,
 
+    val pincode: String,
+    val state: String,
+    val code: String,
+    val gstin: String,
+
     val isActive: Boolean,
     val addedOn: String,
 )
@@ -28,4 +33,9 @@ data class OwnerDTO(
 
     val ownerEmail: String,
     val ownerAddress: String,
+
+    val pincode: String,
+    val state: String,
+    val code: String,
+    val gstin: String,
 )
