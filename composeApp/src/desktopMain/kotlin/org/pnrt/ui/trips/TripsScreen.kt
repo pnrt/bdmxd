@@ -476,6 +476,7 @@ fun TripsScreen() {
                             )
                             Text(text = "||")
                             Text(text = "📜 Ordered Quantity: ${SelectedOrder.order?.quantity ?: 0}")
+                            Text("${if (tripsViewModel.tripList.sumOf { it.unloadQuantity } < SelectedOrder.order?.quantity ?: 0.0) "🟢" else "🔴"}")
                         }
                     }
                     Spacer(modifier = Modifier.padding(8.dp))
