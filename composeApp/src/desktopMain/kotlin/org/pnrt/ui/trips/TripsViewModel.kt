@@ -52,7 +52,7 @@ class TripsViewModel : ViewModel() {
 
     fun createTrip(companyId: Long, tpNumber: String, orderId: Long, vehicleId: Long, driverId: Long, passNumber: Long) {
         isLoadingCreateTrip = true
-        messageTripList = ""
+        messageCreateTrip = ""
         viewModelScope.launch {
             try {
                 val insertTrip = TripDTO(companyId = companyId, tpNumber = tpNumber, orderId = orderId, vehicleId = vehicleId, driverId = driverId, remarks = "created at Desktop", passNumber = passNumber)
