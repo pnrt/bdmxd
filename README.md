@@ -23,10 +23,13 @@ A powerful and user-friendly desktop application built with compose to help user
 ---
 
 ## 🖼️ Screenshots
+### 🏠 Orders
+![Orders Screen](Screenshot2025-05-06121119.png)
 
-| Home                           | Settings                          | Output                         |
-|--------------------------------|-----------------------------------|--------------------------------|
-| ![Order](Screenshot2025-05-06121119.png) | ![Trip](Screenshot2025-05-06121249.png) | ![Add](Screenshot2025-05-06121344.png) |
+### ⚙️ Trips
+![Trips Screen](Screenshot2025-05-06121249.png)
 
+### 📤 Add
+![Add Screen](Screenshot2025-05-06121344.png)
 ---
 
