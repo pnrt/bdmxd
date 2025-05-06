@@ -1,11 +1,32 @@
-This is a Kotlin Multiplatform project targeting Desktop.
+# 🖥️ BDMX Desktop App
 
-* `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - `commonMain` is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    `iosMain` would be the right folder for such calls.
+A powerful and user-friendly desktop application built with compose to help users manage order and trips for bulk products.
 
+---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## 🚀 Features
+
+- ⚡ Fast and responsive UI
+- 📁 Save/load files
+- 🔒 Secure user preferences
+- 🌐 Internet features
+- 🧩 Modular and easy to extend
+
+---
+
+## 🛠️ Tech Stack
+
+- Language: Java/Kotlin
+- UI Framework: Jetpack Compose
+- Packaging: JPackage / Jar
+
+---
+
+## 🖼️ Screenshots
+
+| Home                           | Settings                          | Output                         |
+|--------------------------------|-----------------------------------|--------------------------------|
+| ![Order](Screenshot 2025-05-06 121119.png) | ![Trip](Screenshot 2025-05-06 121249.png) | ![Add](Screenshot 2025-05-06 121344.png) |
+
+---
+
