@@ -26,7 +26,7 @@ A powerful and user-friendly desktop application built with compose to help user
 
 | Home                           | Settings                          | Output                         |
 |--------------------------------|-----------------------------------|--------------------------------|
-| ![Order](Screenshot 2025-05-06 121119.png) | ![Trip](Screenshot 2025-05-06 121249.png) | ![Add](Screenshot 2025-05-06 121344.png) |
+| ![Order](Screenshot2025-05-06121119.png) | ![Trip](Screenshot2025-05-06121249.png) | ![Add](Screenshot2025-05-06121344.png) |
 
 ---
 
